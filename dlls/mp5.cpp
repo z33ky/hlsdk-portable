@@ -173,9 +173,11 @@ void CMP5::PrimaryAttack()
 #endif
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMP5, 0.0f, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
+#if 0
 	if( !m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 );
+#endif
 
 	m_flNextPrimaryAttack = GetNextAttackDelay( 0.1f );
 
@@ -231,9 +233,11 @@ void CMP5::SecondaryAttack( void )
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0f;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0f;// idle pretty soon after shooting.
 
+#if 0
 	if( !m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] )
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate( "!HEV_AMO0", FALSE, 0 );
+#endif
 }
 
 void CMP5::Reload( void )

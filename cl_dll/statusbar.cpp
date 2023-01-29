@@ -31,8 +31,10 @@ DECLARE_MESSAGE( m_StatusBar, StatusValue )
 
 #define STATUSBAR_ID_LINE		1
 
+#if 0
 float *GetClientColor( int clientIndex );
 extern float g_ColorYellow[3];
+#endif
 
 int CHudStatusBar::Init( void )
 {
@@ -65,9 +67,11 @@ void CHudStatusBar::Reset( void )
 
 	m_iStatusValues[0] = 1;  // 0 is the special index, which always returns true
 
+#if 0
 	// reset our colors for the status bar lines (yellow is default)
 	for ( i = 0; i < MAX_STATUSBAR_LINES; i++ )
 		m_pflNameColors[i] = g_ColorYellow;
+#endif
 }
 
 void CHudStatusBar::ParseStatusString( int line_num )
@@ -143,7 +147,9 @@ void CHudStatusBar::ParseStatusString( int line_num )
 							{
 								strncpy( szRepString, g_PlayerInfoList[indexval].name, MAX_PLAYER_NAME_LENGTH - 1 );
 								szRepString[MAX_PLAYER_NAME_LENGTH - 1] = '\0';
+#if 0
 								m_pflNameColors[line_num] = GetClientColor( indexval );
+#endif
 							}
 							else
 							{
@@ -178,7 +184,9 @@ int CHudStatusBar::Draw( float fTime )
 	{
 		for( int i = 0; i < MAX_STATUSBAR_LINES; i++ )
 		{
+#if 0
 			m_pflNameColors[i] = g_ColorYellow;
+#endif
 			ParseStatusString( i );
 		}
 		m_bReparseString = FALSE;
@@ -202,8 +210,10 @@ int CHudStatusBar::Draw( float fTime )
 			y = ( ScreenHeight / 2 ) + ( TextHeight * CVAR_GET_FLOAT( "hud_centerid" ) );
 		}
 
+#if 0
 		if( m_pflNameColors[i] )
 			DrawSetTextColor( m_pflNameColors[i][0], m_pflNameColors[i][1], m_pflNameColors[i][2] );
+#endif
 
 		DrawConsoleString( x, y, m_szStatusBar[i] );
 	}

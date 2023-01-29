@@ -333,6 +333,14 @@ CImageLabel::CImageLabel( const char *pImageName, int x, int y, int wide, int ta
 	setImage( m_pTGA );
 }
 
+CImageLabel::~CImageLabel()
+{
+	if ( m_pTGA )
+	{
+		delete m_pTGA;
+	}
+}
+
 //===========================================================
 // Image size
 int CImageLabel::getImageWide( void )

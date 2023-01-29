@@ -657,6 +657,7 @@ void CLightning::StrikeUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 int IsPointEntity( CBaseEntity *pEnt )
 {
 //	ALERT(at_console, "IsPE: %s, %d\n", STRING(pEnt->pev->classname), pEnt->pev->modelindex);
+	if (pEnt == NULL) return 0;	// Cthulhu
 	if (pEnt->pev->modelindex && !(pEnt->pev->flags & FL_CUSTOMENTITY)) //LRC- follow (almost) any entity that has a model
 		return 0;
 	else
@@ -910,6 +911,12 @@ void CLightning::Zap( const Vector &vecSrc, const Vector &vecDest )
 	MESSAGE_END();
 #endif
 	DoSparks( vecSrc, vecDest );
+
+	// Cthulhu
+	TraceResult tr;
+	UTIL_TraceLine( vecSrc, vecDest, dont_ignore_monsters, NULL, &tr );
+	if( pev->dmg )
+		BeamDamageInstant( &tr, pev->dmg );
 }
 
 void CLightning::RandomArea( void )
@@ -1016,12 +1023,29 @@ void CLightning::BeamUpdatePoints( void )
 		if( beamType == BEAM_POINTS || beamType == BEAM_HOSE )
 			SetEndPos( pEnd->pev->origin );
 		else
-			SetEndEntity( ENTINDEX(ENT(pEnd->pev)) );
+		{
+			// Cthulhu: fix for bug..though it should not occur
+			if( pEnd )
+			{
+				SetEndEntity( ENTINDEX(ENT(pEnd->pev)) );
+			}
+			else
+			{
+				SetEndEntity( ENTINDEX(NULL) );
+			}
+		}
 	}
 	else
 	{
-		SetStartEntity( ENTINDEX(ENT(pStart->pev)) );
-		SetEndEntity( ENTINDEX(ENT(pEnd->pev)) );
+		if( pStart )
+			SetStartEntity( ENTINDEX(ENT(pStart->pev)) );
+		else
+			SetStartEntity( ENTINDEX(NULL) );
+			
+		if( pEnd )
+			SetEndEntity( ENTINDEX(ENT(pEnd->pev)) );
+		else
+			SetEndEntity( ENTINDEX(NULL) );
 	}
 
 	RelinkBeam();
@@ -3087,7 +3111,7 @@ void CEnvBeamTrail::Affect( CBaseEntity *pTarget, USE_TYPE useType )
 			WRITE_SHORT(pTarget->entindex());	// entity
 			WRITE_SHORT( m_iSprite );	// model
 			WRITE_BYTE( pev->health*10 ); // life
-			WRITE_BYTE( pev->armorvalue );  // width
+			WRITE_BYTE( pev->sanity );  // width
 			WRITE_BYTE( pev->rendercolor.x );   // r, g, b
 			WRITE_BYTE( pev->rendercolor.y );   // r, g, b
 			WRITE_BYTE( pev->rendercolor.z );   // r, g, b
@@ -4337,6 +4361,13 @@ void CEnvFog :: Spawn ( void )
 		SetThink(&CEnvFog :: TurnOn );
 		UTIL_DesiredThink( this );
 	}
+#if 0
+	else // turns off carried over effects from a previous level
+	{
+		SetThink( &CEnvFog::TurnOff );
+		UTIL_DesiredThink( this );
+	}
+#endif
 
 // Precache is now used only to continue after a game has loaded.
 //	Precache();
@@ -4354,6 +4385,13 @@ void CEnvFog :: Precache ( void )
 		SetThink(&CEnvFog :: ResumeThink );
 		SetNextThink( 0.1 );
 	}
+#if 0
+	else
+	{
+		SetThink( &CEnvFog::Resume2Think );
+		SetNextThink( 0.1f );
+	}
+#endif
 }
 
 extern int gmsgSetFog;
@@ -4414,6 +4452,15 @@ void CEnvFog :: ResumeThink ( void )
 	SetThink(&CEnvFog ::FadeInDone);
 	SetNextThink(0.1);
 }
+
+#if 0
+void CEnvFog :: Resume2Think ( void )
+{
+//	ALERT(at_console, "Fog resume %f\n", gpGlobals->time);
+	SetThink( &CEnvFog::FadeOutDone );
+	SetNextThink( 0.1f );
+}
+#endif
 
 void CEnvFog :: FadeInDone ( void )
 {

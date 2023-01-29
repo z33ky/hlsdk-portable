@@ -328,9 +328,11 @@ void CTurret::Spawn()
 void CTurret::Precache()
 {
 	CBaseTurret::Precache();
+#if 0
 	if (pev->model)
 		PRECACHE_MODEL(STRING(pev->model)); //LRC
 	else
+#endif
 		PRECACHE_MODEL( "models/turret.mdl" );
 	PRECACHE_MODEL( TURRET_GLOW_SPRITE );
 }
@@ -361,9 +363,11 @@ void CMiniTurret::Spawn()
 void CMiniTurret::Precache()
 {
 	CBaseTurret::Precache();
+#if 0
 	if (pev->model)
 		PRECACHE_MODEL(STRING(pev->model)); //LRC
 	else
+#endif
 		PRECACHE_MODEL( "models/miniturret.mdl" );
 	PRECACHE_SOUND( "weapons/hks1.wav" );
 	PRECACHE_SOUND( "weapons/hks2.wav" );
@@ -1166,9 +1170,11 @@ LINK_ENTITY_TO_CLASS( monster_sentry, CSentry )
 void CSentry::Precache()
 {
 	CBaseTurret::Precache();
+#if 0
 	if (pev->model)
 		PRECACHE_MODEL(STRING(pev->model)); //LRC
 	else
+#endif
 		PRECACHE_MODEL( "models/sentry.mdl" );
 	PRECACHE_SOUND( "weapons/hks1.wav" );
 	PRECACHE_SOUND( "weapons/hks2.wav" );
@@ -1178,9 +1184,11 @@ void CSentry::Precache()
 void CSentry::Spawn()
 {
 	Precache();
+#if 0
 	if (pev->model)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
+#endif
 		SET_MODEL( ENT( pev ), "models/sentry.mdl" );
 	if (!pev->health) //LRC
 		pev->health = gSkillData.sentryHealth;

@@ -585,9 +585,11 @@ void CAGrunt::Spawn()
 {
 	Precache();
 
+#if 0
 	if (pev->model)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
+#endif
 		SET_MODEL( ENT( pev ), "models/agrunt.mdl" );
 	UTIL_SetSize( pev, Vector( -32.0f, -32.0f, 0.0f ), Vector( 32.0f, 32.0f, 64.0f ) );
 
@@ -596,12 +598,16 @@ void CAGrunt::Spawn()
 	m_bloodColor = BLOOD_COLOR_GREEN;
 	pev->effects = 0;
 
+#if 0
 	if (pev->health == 0)
+#endif
 		pev->health = gSkillData.agruntHealth;
 	m_flFieldOfView = 0.2f;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_afCapability = 0;
+#if 0
 	m_afCapability |= bits_CAP_SQUAD;
+#endif
 
 	m_HackedGunPos = Vector( 24.0f, 64.0f, 48.0f );
 
@@ -615,9 +621,11 @@ void CAGrunt::Spawn()
 //=========================================================
 void CAGrunt::Precache()
 {
+#if 0
 	if (pev->model)
 		PRECACHE_MODEL(STRING(pev->model)); //LRC
 	else
+#endif
 		PRECACHE_MODEL( "models/agrunt.mdl" );
 
 	PRECACHE_SOUND_ARRAY( pAttackHitSounds );

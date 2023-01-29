@@ -287,7 +287,10 @@ void CTentacle::Spawn()
 
 void CTentacle::Precache()
 {
-	PRECACHE_MODEL( "models/tentacle2.mdl" );
+	if( pev->model )
+		PRECACHE_MODEL( STRING(pev->model) ); //LRC
+	else
+		PRECACHE_MODEL( "models/tentacle2.mdl" );
 
 	PRECACHE_SOUND( "ambience/flies.wav" );
 	PRECACHE_SOUND( "ambience/squirm2.wav" );

@@ -31,6 +31,8 @@
 #include "cl_dll.h"
 #include "ammo.h"
 
+class CImageLabel;
+
 #define DHN_DRAWZERO 1
 #define DHN_2DIGITS  2
 #define DHN_3DIGITS  4
@@ -378,22 +380,37 @@ private:
 //
 //-----------------------------------------------------
 //
-class CHudBattery : public CHudBase
+class CHudSanity : public CHudBase
 {
 public:
 	int Init( void );
 	int VidInit( void );
 	int Draw( float flTime );
-	int MsgFunc_Battery( const char *pszName,  int iSize, void *pbuf );
+	int MsgFunc_Sanity( const char *pszName,  int iSize, void *pbuf );
 	
 private:
 	HSPRITE m_hSprite1;
 	HSPRITE m_hSprite2;
 	wrect_t *m_prc1;
 	wrect_t *m_prc2;
-	int m_iBat;
+	int m_iSan;
 	float m_fFade;
-	int m_iHeight;		// width of the battery innards
+	int m_iHeight;		// width of the sanity innards
+};
+
+//
+//-----------------------------------------------------
+//
+class CHudReadBook : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	//int Draw( float flTime );
+	int MsgFunc_ReadBook( const char *pszName,  int iSize, void *pbuf );
+	
+private:
+	CImageLabel *pImage;
 };
 
 //
@@ -649,7 +666,9 @@ public:
 	CHudHealth		m_Health;
 	CHudSpectator		m_Spectator;
 	CHudGeiger		m_Geiger;
-	CHudBattery		m_Battery;
+	CHudSanity		m_Sanity;
+	CHudReadBook	m_ReadBook;
+	//CHudBattery		m_Battery;
 	CHudTrain		m_Train;
 	CHudFlashlight	m_Flash;
 	CHudMessage		m_Message;

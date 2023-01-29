@@ -102,11 +102,11 @@ void CCineMonster::KeyValue( KeyValueData *pkvd )
 		m_fAction = atoi( pkvd->szValue );
 		pkvd->fHandled = TRUE;
 	}
-// LRC	else if (FStrEq(pkvd->szKeyName, "m_flRepeat"))
-//	{
-//		m_flRepeat = atof( pkvd->szValue );
-//		pkvd->fHandled = TRUE;
-//	}
+	else if ( FStrEq( pkvd->szKeyName, "m_flRepeat" ) )
+	{
+		m_flRepeat = atof( pkvd->szValue );
+		pkvd->fHandled = TRUE;
+	}
 	else if( FStrEq( pkvd->szKeyName, "m_flRadius" ) )
 	{
 		m_flRadius = atof( pkvd->szValue );
@@ -151,7 +151,7 @@ TYPEDESCRIPTION	CCineMonster::m_SaveData[] =
 	DEFINE_FIELD( CCineMonster, m_fMoveTo, FIELD_INTEGER ),
 	DEFINE_FIELD( CCineMonster, m_fTurnType, FIELD_INTEGER ),
 	DEFINE_FIELD( CCineMonster, m_fAction, FIELD_INTEGER ),
-//LRC- this is unused	DEFINE_FIELD( CCineMonster, m_flRepeat, FIELD_FLOAT ),
+	DEFINE_FIELD( CCineMonster, m_flRepeat, FIELD_FLOAT ),
 	DEFINE_FIELD( CCineMonster, m_flRadius, FIELD_FLOAT ),
 
 	DEFINE_FIELD( CCineMonster, m_iDelay, FIELD_INTEGER ),
@@ -503,6 +503,7 @@ BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL comple
 	ALERT( at_console, "%s (%s): started \"%s\":INT:%s\n", STRING( pTarget->pev->targetname ), STRING( pTarget->pev->classname ), STRING( iszSeq ), s );
 #endif
 
+	m_interruptable = 0;	// cthulhu bug fix
 	pTarget->pev->frame = 0;
 	pTarget->ResetSequenceInfo();
 	return TRUE;
@@ -517,6 +518,39 @@ BOOL CCineMonster::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL comple
 //=========================================================
 void CCineMonster::SequenceDone( CBaseMonster *pMonster )
 {
+	// CTHULHU: horrible hack...
+	if( FStrEq( STRING( m_iszPlay ), "busting_through_wall" ) )
+	{
+		// copied from CineCleanup
+		//////////////////////////
+		Vector new_origin, new_angle;
+		pMonster->GetBonePosition( 0, new_origin, new_angle );
+
+		// UNDONE: THIS SHOULD ONLY HAPPEN IF WE ACTUALLY PLAYED THE SEQUENCE.
+		//Vector oldOrigin = pMonster->pev->origin;
+
+		//UTIL_SetOrigin( pMonster, new_origin );
+		pMonster->pev->origin = new_origin;
+		DROP_TO_FLOOR( ENT( pMonster->pev ) );
+		//////////////////////////
+		// Need to also set "move to position" to false...
+		m_fMoveTo = 0;
+		m_iszPlay = ALLOC_STRING( "getup" );
+		StartSequence( pMonster, m_iszPlay, FALSE );
+		return;
+	}
+	else if( FStrEq( STRING( m_iszPlay ), "insane" ) )
+	{
+		//////////////////////////
+		// Need to also set "move to position" to false...
+		m_fMoveTo = 0;
+		m_iszPlay = ALLOC_STRING( "insane2" );
+		m_iRepeats = 100;
+		m_iRepeatsLeft = m_iRepeats; 
+		StartSequence( pMonster, m_iszPlay, FALSE );
+		return;
+	}
+
 	m_iRepeatsLeft = m_iRepeats; //LRC - reset the repeater count
 	m_iState = STATE_OFF; // we've finished.
 //	ALERT( at_console, "Sequence %s finished\n", STRING(pev->targetname));//STRING( m_pCine->m_iszPlay ) );
@@ -1062,7 +1096,7 @@ void CScriptedSentence::FindThink( void )
 	}
 	else
 	{
-		//ALERT( at_console, "%s: can't find monster %s\n", STRING( m_iszSentence ), STRING( m_iszEntity ) );
+		ALERT( at_console, "%s: can't find monster %s\n", STRING( m_iszSentence ), STRING( m_iszEntity ) );
 		SetNextThink( m_flRepeat + 0.5f );
 	}
 }
@@ -1174,6 +1208,7 @@ BOOL CScriptedSentence::StartSentence( CBaseMonster *pTarget )
 	return TRUE;
 }
 
+#if 0
 //=========================================================
 // Furniture - this is the cool comment I cut-and-pasted
 //=========================================================
@@ -1230,3 +1265,4 @@ int CFurniture::Classify( void )
 {
 	return m_iClass?m_iClass:CLASS_NONE;
 }
+#endif

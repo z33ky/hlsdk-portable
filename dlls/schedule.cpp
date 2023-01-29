@@ -1550,7 +1550,7 @@ Schedule_t *CBaseMonster::GetSchedule( void )
 				else
 				{
 					// chase!
-					return GetScheduleOfType( SCHED_CHASE_ENEMY );
+					return GetScheduleOfType( SCHED_CHASE_ENEMY_LKP );
 				}
 			}
 			else  

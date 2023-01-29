@@ -134,6 +134,7 @@ public:
 	virtual BOOL ShouldFadeOnDeath( void );
 
 	// Basic Monster AI functions
+	virtual float GetFleeDistance ( void )	{ return 500.0; };
 	virtual float ChangeYaw( int speed );
 	float VecToYaw( Vector vecDir );
 	float FlYawDiff( void ); 
@@ -234,6 +235,7 @@ public:
 	int RouteClassify( int iMoveFlag );
 	void InsertWaypoint( Vector vecLocation, int afMoveFlags );
 
+	BOOL RunAwayFromEnemy ( void );
 	BOOL FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset );
 	virtual BOOL FindCover( Vector vecThreat, Vector vecViewOffset, float flMinDist, float flMaxDist );
 	virtual BOOL FValidateCover( const Vector &vecCoverLocation ) { return TRUE; };
@@ -272,6 +274,8 @@ public:
 	virtual void BarnacleVictimReleased( void );
 
 	void SetEyePosition( void );
+
+	void Panic ( entvars_t* pevPanic );// make the monster panic for a while.
 
 	BOOL FShouldEat( void );// see if a monster is 'hungry'
 	void Eat( float flFullDuration );// make the monster 'full' for a while.

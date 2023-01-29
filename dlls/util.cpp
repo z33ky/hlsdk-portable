@@ -284,7 +284,7 @@ TYPEDESCRIPTION	gEntvarsDescription[] =
 	DEFINE_ENTITY_FIELD( max_health, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( teleport_time, FIELD_TIME ),
 	DEFINE_ENTITY_FIELD( armortype, FIELD_FLOAT ),
-	DEFINE_ENTITY_FIELD( armorvalue, FIELD_FLOAT ),
+	DEFINE_ENTITY_FIELD( sanity, FIELD_FLOAT ),
 	DEFINE_ENTITY_FIELD( waterlevel, FIELD_INTEGER ),
 	DEFINE_ENTITY_FIELD( watertype, FIELD_INTEGER ),
 
@@ -1149,6 +1149,15 @@ void UTIL_SayTextAll( const char *pText, CBaseEntity *pEntity )
 	MESSAGE_END();
 }
 
+extern int gmsgReadBook;
+void UTIL_ReadBook( const char *szImage )
+{
+	MESSAGE_BEGIN( MSG_ALL, gmsgReadBook, NULL );
+		WRITE_STRING( szImage );
+	MESSAGE_END();
+}
+
+
 char *UTIL_dtos1( int d )
 {
 	static char buf[8];
@@ -1716,7 +1725,6 @@ void UTIL_StringToVector( float *pVector, const char *pString )
 	}
 }
 
-
 //LRC - randomized vectors of the form "0 0 0 .. 1 0 0"
 void UTIL_StringToRandomVector( float *pVector, const char *pString )
 {
@@ -1759,7 +1767,6 @@ void UTIL_StringToRandomVector( float *pVector, const char *pString )
 		pVector[2] = RANDOM_FLOAT( pVector[2], pAltVec[2] );
 	}
 }
-
 
 void UTIL_StringToIntArray( int *pVector, int count, const char *pString )
 {

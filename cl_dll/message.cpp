@@ -409,13 +409,18 @@ int CHudMessage::Draw( float fTime )
 
 void CHudMessage::MessageAdd( const char *pName, float time )
 {
+#if 0
 	int i, j;
 	client_textmessage_t *tempMessage;
+#else
+	int i;
+#endif
 
 	for( i = 0; i < maxHUDMessages; i++ )
 	{
 		if( !m_pMessages[i] )
 		{
+#if 0
 			// Trim off a leading # if it's there
 			if( pName[0] == '#' ) 
 				tempMessage = TextMessageGet( pName + 1 );
@@ -465,6 +470,9 @@ void CHudMessage::MessageAdd( const char *pName, float time )
 			}
 
 			m_pMessages[i] = tempMessage;
+#else
+			m_pMessages[i] = TextMessageGet( pName );
+#endif
 			m_startTime[i] = time;
 			return;
 		}

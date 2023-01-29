@@ -38,7 +38,7 @@ project (HLSDK-PORTABLE)
 #--------------
 # USER DEFINES \
 ################\
-option(USE_VGUI "Enable VGUI1." OFF)
+option(USE_VGUI "Enable VGUI1." ON)
 option(USE_VGUI2 "Enable VGUI2. UNDONE" OFF)
 option(USE_NOVGUI_MOTD "Prefer non-VGUI MOTD when USE_VGUI is enabled" OFF)
 option(USE_NOVGUI_SCOREBOARD "Prefer non-VGUI Scoreboard when USE_VGUI is enabled" OFF)
@@ -59,30 +59,18 @@ else()
 endif()
 
 option(BARNACLE_FIX_VISIBILITY "Enable barnacle tongue length fix" OFF)
+#FIXME cthulhu + CLIENT_WEAPONS
 option(CLIENT_WEAPONS "Enable client local weapons prediction" ON)
-option(CROWBAR_IDLE_ANIM "Enable crowbar idle animation" OFF)
-option(CROWBAR_DELAY_FIX "Enable crowbar attack delay fix" OFF)
-option(CROWBAR_FIX_RAPID_CROWBAR "Enable rapid crowbar fix" OFF)
-option(GAUSS_OVERCHARGE_FIX "Enable gauss overcharge fix" OFF)
-option(TRIPMINE_BEAM_DUPLICATION_FIX "Enable fix of tripmine beam duplication on level transition" OFF)
-option(HANDGRENADE_DEPLOY_FIX "Enable handgrenade deploy animation fix after finishing a throw" OFF)
 option(WEAPONS_ANIMATION_TIMES_FIX "Enable animation times fix for some weapons" OFF)
-option(OEM_BUILD "Enable OEM Build" OFF)
-option(HLDEMO_BUILD "Enable Demo Build" OFF)
-option(XENWARRIOR "Compile as Xen-Warrior" OFF)
+#option(OEM_BUILD "Enable OEM Build" OFF)
+#option(HLDEMO_BUILD "Enable Demo Build" OFF)
+#option(XENWARRIOR "Compile as Xen-Warrior" OFF)
 
 set(SERVER_INSTALL_DIR "dlls" CACHE STRING "Where put server dll")
 set(CLIENT_INSTALL_DIR "cl_dlls" CACHE STRING "Where put client dll")
-set(SERVER_LIBRARY_NAME "spirit" CACHE STRING "Library name for PC platforms")
+set(SERVER_LIBRARY_NAME "cth_hl" CACHE STRING "Library name for PC platforms")
 
-if(XENWARRIOR)
-	set(GAMEDIR "xenwar" CACHE STRING "Gamedir path")
-	add_definitions(-DXENWARRIOR)
-	message(STATUS "Xen-Warrior")
-else()
-	set(GAMEDIR "Spirit" CACHE STRING "Gamedir path")
-	message(STATUS "Spirit of Half-Life 1.2")
-endif()
+set(GAMEDIR "cthulhu" CACHE STRING "Gamedir path")
 
 #-----------------
 # MAIN BUILD CODE \

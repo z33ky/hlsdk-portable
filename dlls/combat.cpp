@@ -551,6 +551,11 @@ Activity CBaseMonster::GetSmallFlinchActivity( void )
 	{
 		flinchActivity = ACT_SMALL_FLINCH;
 	}
+	// do we have even a basic flinch???
+	if ( LookupActivity ( flinchActivity ) == ACTIVITY_NOT_AVAILABLE )
+	{
+		flinchActivity = ACT_IDLE;
+	}
 
 	return flinchActivity;
 }
@@ -1510,6 +1515,27 @@ void CBaseEntity::FireBullets( ULONG cShots, Vector vecSrc, Vector vecDirShootin
 			else switch( iBulletType )
 			{
 			default:
+			case BULLET_PLAYER_REVOLVER:
+				 // make distance based!
+				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgRevolver, vecDir, &tr, DMG_BULLET ); 
+				break;
+			
+			case BULLET_PLAYER_SHOTGUN:	
+				 // make distance based!
+				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgShotgun, vecDir, &tr, DMG_BULLET ); 
+				break;
+			
+			case BULLET_PLAYER_TOMMYGUN:
+				 // make distance based!
+				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgTommyGun, vecDir, &tr, DMG_BULLET ); 
+				break;
+			
+			case BULLET_PLAYER_RIFLE:
+				 // make distance based!
+				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgRifle, vecDir, &tr, DMG_BULLET ); 
+				break;
+
+
 			case BULLET_MONSTER_9MM:
 				pEntity->TraceAttack( pevAttacker, gSkillData.monDmg9MM, vecDir, &tr, DMG_BULLET );
 
@@ -1619,9 +1645,9 @@ Vector CBaseEntity::FireBulletsPlayer( ULONG cShots, Vector vecSrc, Vector vecDi
 			case BULLET_PLAYER_MP5:
 				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgMP5, vecDir, &tr, DMG_BULLET );
 				break;
-			case BULLET_PLAYER_BUCKSHOT:
+			case BULLET_PLAYER_SHOTGUN:
 				 // make distance based!
-				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, DMG_BULLET );
+				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmgShotgun, vecDir, &tr, DMG_BULLET );
 				break;
 			case BULLET_PLAYER_357:
 				pEntity->TraceAttack( pevAttacker, gSkillData.plrDmg357, vecDir, &tr, DMG_BULLET );

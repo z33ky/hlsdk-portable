@@ -376,6 +376,10 @@ extern void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, 
 // prints a message to the HUD say (chat)
 extern void			UTIL_SayText( const char *pText, CBaseEntity *pEntity );
 extern void			UTIL_SayTextAll( const char *pText, CBaseEntity *pEntity );
+extern void			UTIL_ReadBook( const char *szImage );
+extern void			UTIL_ShutDownCameras( void );
+extern edict_t		*UTIL_FindLandmark( const char *pLandmarkName );
+
 
 typedef struct hudtextparms_s
 {

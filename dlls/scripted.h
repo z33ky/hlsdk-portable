@@ -108,7 +108,7 @@ public:
 	int m_fAction;
 	int m_iFinishSchedule;
 	float m_flRadius;		// range to search
-//LRC- this does nothing!!	float m_flRepeat;	// repeat rate
+	float m_flRepeat;	// repeat rate
 	int m_iRepeats; //LRC - number of times to repeat the animation
 	int m_iRepeatsLeft; //LRC
 	float m_fRepeatFrame; //LRC

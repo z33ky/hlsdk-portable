@@ -34,10 +34,50 @@ enum hgun_e
 	HGUN_SHOOT
 };
 
+#if 0
 enum firemode_e
 {
 	FIREMODE_TRACK = 0,
 	FIREMODE_FAST
+};
+#endif
+
+class CHgun : public CBasePlayerWeapon
+{
+public:
+#if !CLIENT_DLL
+	int		Save( CSave &save );
+	int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+#endif
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 4; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL Deploy( void );
+	BOOL IsUseable( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	float m_flRechargeTime;
+
+	int m_iFirePhase;// don't save me.
+
+	virtual BOOL UseDecrement( void )
+	{
+#if CLIENT_WEAPONS
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usHornetFire;
 };
 
 LINK_ENTITY_TO_CLASS( weapon_hornetgun, CHgun )
@@ -114,6 +154,7 @@ BOOL CHgun::Deploy()
 void CHgun::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
+	// m_flTimeWeaponIdle = gpGlobals->time + RANDOM_FLOAT ( 10, 15 );
 	SendWeaponAnim( HGUN_DOWN );
 
 	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either.
@@ -136,9 +177,10 @@ void CHgun::PrimaryAttack()
 
 	CBaseEntity *pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16.0f + gpGlobals->v_right * 8.0f + gpGlobals->v_up * -12.0f, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
 	pHornet->pev->velocity = gpGlobals->v_forward * 300.0f;
+#endif
 
 	m_flRechargeTime = gpGlobals->time + 0.5f;
-#endif
+
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 	
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
@@ -151,6 +193,8 @@ void CHgun::PrimaryAttack()
 	flags = 0;
 #endif
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usHornetFire, 0.0f, g_vecZero, g_vecZero, 0.0f, 0.0f, 0, 0, 0, 0 );
+
+	SendWeaponAnim( HGUN_SHOOT );
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -222,9 +266,10 @@ void CHgun::SecondaryAttack( void )
 	pHornet->pev->angles = UTIL_VecToAngles( pHornet->pev->velocity );
 
 	pHornet->SetThink( &CHornet::StartDart );
+#endif
 
 	m_flRechargeTime = gpGlobals->time + 0.5f;
-#endif
+
 	int flags;
 #if CLIENT_WEAPONS
 	flags = FEV_NOTHOST;
@@ -237,11 +282,15 @@ void CHgun::SecondaryAttack( void )
 	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
 
+
+	SendWeaponAnim( HGUN_SHOOT );
+
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1f;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
+	m_pPlayer->pev->punchangle.x = RANDOM_FLOAT( 0, 2 );
 }
 
 void CHgun::Reload( void )
@@ -282,4 +331,14 @@ void CHgun::WeaponIdle( void )
 	}
 	SendWeaponAnim( iAnim );
 }
+
+#if !CLIENT_DLL
+TYPEDESCRIPTION CHgun::m_SaveData[] =
+{
+	DEFINE_FIELD( CHgun, m_flRechargeTime, FIELD_TIME ),
+	//DEFINE_FIELD( CHgun, m_iFirePhase, FIELD_INTEGER ),
+};
+
+IMPLEMENT_SAVERESTORE( CHgun, CBasePlayerWeapon )
+#endif
 #endif

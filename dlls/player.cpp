@@ -50,6 +50,9 @@ extern DLL_GLOBAL int g_iSkillLevel, gDisplayTitle;
 
 extern "C" int g_bhopcap;
 
+char st_szPreInsaneMap[cchMapNameMost];
+
+
 BOOL gInitHUD = TRUE;
 
 extern void CopyToBodyQue( entvars_t *pev);
@@ -151,7 +154,7 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	//DEFINE_FIELD( CBasePlayer, m_fNoPlayerSound, FIELD_BOOLEAN ), // Don't need to restore, debug
 	//DEFINE_FIELD( CBasePlayer, m_iUpdateTime, FIELD_INTEGER ), // Don't need to restore
 	//DEFINE_FIELD( CBasePlayer, m_iClientHealth, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_iClientBattery, FIELD_INTEGER ), // Don't restore, client needs reset
+	//DEFINE_FIELD( CBasePlayer, m_iClientSanity, FIELD_INTEGER ), // Don't restore, client needs reset
 	//DEFINE_FIELD( CBasePlayer, m_iClientHideHUD, FIELD_INTEGER ), // Don't restore, client needs reset
 	//DEFINE_FIELD( CBasePlayer, m_fWeapon, FIELD_BOOLEAN ),  // Don't restore, client needs reset
 	//DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't restore, depends on server message after spawning and only matters in multiplayer
@@ -179,7 +182,7 @@ int gmsgShowGameTitle = 0;
 int gmsgCurWeapon = 0;
 int gmsgHealth = 0;
 int gmsgDamage = 0;
-int gmsgBattery = 0;
+int gmsgSanity = 0;
 int gmsgTrain = 0;
 int gmsgLogo = 0;
 int gmsgWeaponList = 0;
@@ -203,6 +206,7 @@ int gmsgSetFOV = 0;
 int gmsgShowMenu = 0;
 int gmsgGeigerRange = 0;
 int gmsgTeamNames = 0;
+int gmsgReadBook = 0;	// Cthulhu
 int gmsgStatusIcon = 0; //LRC
 int gmsgBhopcap = 0;
 int gmsgStatusText = 0;
@@ -223,7 +227,7 @@ void LinkUserMessages( void )
 	gmsgFlashBattery = REG_USER_MSG( "FlashBat", 1 );
 	gmsgHealth = REG_USER_MSG( "Health", 1 );
 	gmsgDamage = REG_USER_MSG( "Damage", 12 );
-	gmsgBattery = REG_USER_MSG( "Battery", 2);
+	gmsgSanity = REG_USER_MSG( "Sanity", 2);
 	gmsgTrain = REG_USER_MSG( "Train", 1 );
 	gmsgHudText = REG_USER_MSG( "HudText", -1 );
 	gmsgSayText = REG_USER_MSG( "SayText", -1 );
@@ -257,6 +261,7 @@ void LinkUserMessages( void )
 	gmsgFade = REG_USER_MSG( "ScreenFade", sizeof(ScreenFade) );
 	gmsgAmmoX = REG_USER_MSG( "AmmoX", 2 );
 	gmsgTeamNames = REG_USER_MSG( "TeamNames", -1 );
+	gmsgReadBook = REG_USER_MSG( "ReadBook", -1 );
 	gmsgStatusIcon = REG_USER_MSG( "StatusIcon", -1 );
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
@@ -272,12 +277,21 @@ void CBasePlayer::Pain( void )
 
 	flRndSound = RANDOM_FLOAT( 0.0f, 1.0f ); 
 
+#if 0
 	if( flRndSound <= 0.33f )
 		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain5.wav", 1, ATTN_NORM );
 	else if( flRndSound <= 0.66f )	
 		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain6.wav", 1, ATTN_NORM );
 	else
 		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain7.wav", 1, ATTN_NORM );
+#else
+	if ( flRndSound <= 0.66f )
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/rs_pain1.wav", 1, ATTN_NORM );
+	else if ( flRndSound <= 0.95f )
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/rs_pain2.wav", 1, ATTN_NORM );
+	else
+		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/rs_pain3.wav", 1, ATTN_NORM );
+#endif
 }
 
 Vector VecVelocityForDamage( float flDamage )
@@ -370,6 +384,7 @@ void CBasePlayer::DeathSound( void )
 	*/
 
 	// temporarily using pain sounds for death sounds
+#if 0
 	switch( RANDOM_LONG( 1, 5 ) )
 	{
 	case 1: 
@@ -382,12 +397,17 @@ void CBasePlayer::DeathSound( void )
 		EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/pl_pain7.wav", 1, ATTN_NORM );
 		break;
 	}
+#else
+	EMIT_SOUND( ENT( pev ), CHAN_VOICE, "player/rs_pain3.wav", 1, ATTN_NORM );
+#endif
 
 	// play one of the suit death alarms
 	//LRC- if no suit, then no flatline sound. (unless it's a deathmatch.)
 	if ( !(pev->weapons & (1<<WEAPON_SUIT)) && !g_pGameRules->IsDeathmatch() )
 		return;
+#if 0
 	EMIT_GROUPNAME_SUIT( ENT( pev ), "HEV_DEAD" );
+#endif
 }
 
 // override takehealth
@@ -455,8 +475,10 @@ void CBasePlayer::TraceAttack( entvars_t *pevAttacker, float flDamage, Vector ve
 	etc are implemented with subsequent calls to TakeDamage using DMG_GENERIC.
 */
 
+#if 0
 #define ARMOR_RATIO	0.2	// Armor Takes 80% of the damage
 #define ARMOR_BONUS	0.5	// Each Point of Armor is work 1/x points of health
+#endif
 
 int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
@@ -467,18 +489,18 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 	int fcritical;
 	int fTookDamage;
 	int ftrivial;
-	float flRatio;
-	float flBonus;
 	float flHealthPrev = pev->health;
 
-	flBonus = ARMOR_BONUS;
-	flRatio = ARMOR_RATIO;
+#if 0
+	float flBonus = ARMOR_BONUS;
+	float flRatio = ARMOR_RATIO;
 
 	if( ( bitsDamageType & DMG_BLAST ) && g_pGameRules->IsMultiplayer() )
 	{
 		// blasts damage armor more.
 		flBonus *= 2;
 	}
+#endif
 
 	// Already dead
 	if( !IsAlive() )
@@ -496,6 +518,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 	// keep track of amount of damage last sustained
 	m_lastDamageAmount = (int)flDamage;
 
+#if 0
 	// Armor. 
 	if( !( pev->flags & FL_GODMODE ) && pev->armorvalue && !( bitsDamageType & ( DMG_FALL | DMG_DROWN ) ) )// armor doesn't protect against fall or drown damage!
 	{
@@ -518,6 +541,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 
 		flDamage = flNew;
 	}
+#endif
 
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
@@ -657,6 +681,7 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		SetSuitUpdate( "!HEV_HEAL7", FALSE, SUIT_NEXT_IN_30MIN );	// morphine shot
 	}
 
+#if 0
 	if( fTookDamage && !ftrivial && fcritical && flHealthPrev < 75 )
 	{
 		// already took major damage, now it's critical...
@@ -681,8 +706,51 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		else
 			SetSuitUpdate( "!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN );	// health dropping
 	}
+#endif
 
 	return fTookDamage;
+}
+
+int CBasePlayer::LoseSanity( float flSanLoss )
+{
+	// Already dead
+	if( !IsAlive() )
+		return 0;
+
+	pev->sanity -= flSanLoss;
+	pev->dmg_inflictor = ENT( pev );
+
+	if( pev->sanity <= 0.0f )
+	{
+		pev->sanity = 0.0f;
+		// go to insane map...
+		GoInsane();
+	}
+	else if( pev->sanity > 100.0f )
+	{
+		pev->sanity = 100.0f;
+	}
+
+	m_bitsHUDDamage = -1;  // make sure the damage bits get resent
+
+	return 1;
+}
+
+#define INSANE_MAP "insane"
+#define INSANE_LANDMARK "lm_insane"
+void CBasePlayer::GoInsane( void )
+{
+	//SERVER_COMMAND( "changelevel2 " INSANE_MAP " " INSANE_LANDMARK "\n" );
+
+	// Cthulhu: shut down any active cameras.
+	UTIL_ShutDownCameras();
+
+	pev->origin = Vector( 0, 0, 1 );
+	gpGlobals->vecLandmarkOffset = pev->origin;
+	strcpy( st_szPreInsaneMap, STRING( gpGlobals->mapname ) );
+
+	ALERT( at_console, "CHANGE LEVEL: " INSANE_MAP " " INSANE_LANDMARK "\n" );
+	CHANGE_LEVEL( INSANE_MAP, INSANE_LANDMARK );
 }
 
 //=========================================================
@@ -857,8 +925,10 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	for( i = 0; i < MAX_AMMO_SLOTS; i++ )
 		m_rgAmmo[i] = 0;
 
+#if 0
 	if( satchelfix.value )
 		DeactivateSatchels( this );
+#endif
 
 	UpdateClientData();
 	// send Selected Weapon Message to our client
@@ -905,6 +975,7 @@ void CBasePlayer::RemoveItems( int iWeaponMask, int i9mm, int i357, int iBuck, i
 	int i;
 	CBasePlayerItem *pCurrentItem;
 
+#if 0
 	// hornetgun is outside the spawnflags Worldcraft can set - handle it seperately.
 	if (iHornet)
 		iWeaponMask |= 1<<WEAPON_HORNETGUN;
@@ -921,6 +992,7 @@ void CBasePlayer::RemoveItems( int iWeaponMask, int i9mm, int i357, int iBuck, i
 	RemoveAmmo("Trip Mine", iTrip);
 	RemoveAmmo("Hand Grenade", iGren);
 	RemoveAmmo("Hornets", iHornet);
+#endif
 
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 	{
@@ -1264,6 +1336,7 @@ all the ammo we have into the ammo vars.
 */
 void CBasePlayer::TabulateAmmo()
 {
+#if 0
 	ammo_9mm = AmmoInventory( GetAmmoIndex( "9mm" ) );
 	ammo_357 = AmmoInventory( GetAmmoIndex( "357" ) );
 	ammo_argrens = AmmoInventory( GetAmmoIndex( "ARgrenades" ) );
@@ -1272,6 +1345,7 @@ void CBasePlayer::TabulateAmmo()
 	ammo_rockets = AmmoInventory( GetAmmoIndex( "rockets" ) );
 	ammo_uranium = AmmoInventory( GetAmmoIndex( "uranium" ) );
 	ammo_hornets = AmmoInventory( GetAmmoIndex( "Hornets" ) );
+#endif
 }
 
 /*
@@ -1886,6 +1960,7 @@ void CBasePlayer::AddPointsToTeam( int score, BOOL bAllowNegativeScore )
 	}
 }
 
+#if 0
 //Player ID
 void CBasePlayer::InitStatusBar()
 {
@@ -1924,7 +1999,7 @@ void CBasePlayer::UpdateStatusBar()
 				if( g_pGameRules->PlayerRelationship( this, pEntity ) == GR_TEAMMATE )
 				{
 					newSBarState[SBAR_ID_TARGETHEALTH] = (int)( 100 * ( pEntity->pev->health / pEntity->pev->max_health ) );
-					newSBarState[SBAR_ID_TARGETARMOR] = (int)pEntity->pev->armorvalue; //No need to get it % based since 100 it's the max.
+					newSBarState[SBAR_ID_TARGETARMOR] = (int)pEntity->pev->sanity; //No need to get it % based since 100 it's the max.
 				}
 
 				m_flStatusBarDisappearDelay = gpGlobals->time + 1.0f;
@@ -1981,6 +2056,7 @@ void CBasePlayer::UpdateStatusBar()
 		}
 	}
 }
+#endif
 
 #define CLIMB_SHAKE_FREQUENCY		22	// how many frames in between screen shakes when climbing
 #define	MAX_CLIMB_SPEED			200	// fastest vertical climbing speed possible
@@ -2987,7 +3063,7 @@ void CBasePlayer::Spawn( void )
 {
 	pev->classname = MAKE_STRING( "player" );
 	pev->health = 100;
-	pev->armorvalue = 0;
+	pev->sanity = 100;
 	pev->takedamage = DAMAGE_AIM;
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_WALK;
@@ -3060,7 +3136,7 @@ void CBasePlayer::Spawn( void )
 	m_iClientHideHUD = -1;  // force this to be recalculated
 	m_fWeapon = FALSE;
 	m_pClientActiveItem = NULL;
-	m_iClientBattery = -1;
+	m_iClientSanity = -1;
 
 	// reset all ammo values to 0
 	for( int i = 0; i < MAX_AMMO_SLOTS; i++ )
@@ -3106,7 +3182,7 @@ void CBasePlayer::Precache( void )
 	m_bitsDamageType = 0;
 	m_bitsHUDDamage = -1;
 
-	m_iClientBattery = -1;
+	m_iClientSanity = -1;
 
 	m_flFlashLightTime = 1;
 
@@ -3205,6 +3281,19 @@ int CBasePlayer::Restore( CRestore &restore )
 	//			Barring that, we clear it out here instead of using the incorrect restored time value.
 	m_flNextAttack = UTIL_WeaponTimeBase();
 #endif
+
+	// Cthulhu: are we entering the insane map?
+	if( FStrEq( STRING( gpGlobals->mapname ), INSANE_MAP ) )
+	{
+		// find the landmark
+		edict_t *lmpev = UTIL_FindLandmark( INSANE_LANDMARK );
+		if( lmpev )
+		{
+			// put us there (moved up a bit, incase the landmark is on the ground
+			pev->origin = VARS( lmpev )->origin + Vector( 0, 0, 36 );
+		}
+	}
+
 	return status;
 }
 
@@ -3564,7 +3653,7 @@ Reset stuff so that the state is transmitted.
 void CBasePlayer::ForceClientDllUpdate( void )
 {
 	m_iClientHealth = -1;
-	m_iClientBattery = -1;
+	m_iClientSanity = -1;
 	m_iClientHideHUD = -1;	// Vit_amiN: forcing to update
 	m_iClientFOV = -1;	// Vit_amiN: force client weapons to be sent
 	m_iTrain |= TRAIN_NEW;  // Force new train message.
@@ -3722,6 +3811,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 101:
 		gEvilImpulse101 = TRUE;
 		GiveNamedItem( "item_suit" );
+#if 0
 		GiveNamedItem( "item_battery" );
 		GiveNamedItem( "weapon_crowbar" );
 		GiveNamedItem( "weapon_9mmhandgun" );
@@ -3746,6 +3836,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_satchel" );
 		GiveNamedItem( "weapon_snark" );
 		GiveNamedItem( "weapon_hornetgun" );
+#endif
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
@@ -4171,7 +4262,9 @@ void CBasePlayer::UpdateClientData( void )
 			WRITE_BYTE( 0 );
 		MESSAGE_END();
 
+#if 0
 		InitStatusBar();
+#endif
 	}
 
 	if( m_iHideHUD != m_iClientHideHUD )
@@ -4216,15 +4309,15 @@ void CBasePlayer::UpdateClientData( void )
 		m_iClientHealth = (int)pev->health;
 	}
 
-	if( (int)pev->armorvalue != m_iClientBattery )
+	if( (int)pev->sanity != m_iClientSanity )
 	{
-		m_iClientBattery = (int)pev->armorvalue;
+		m_iClientSanity = (int)pev->sanity;
 
-		ASSERT( gmsgBattery > 0 );
+		ASSERT( gmsgSanity > 0 );
 
 		// send "health" update message
-		MESSAGE_BEGIN( MSG_ONE, gmsgBattery, NULL, pev );
-			WRITE_SHORT( (int)pev->armorvalue );
+		MESSAGE_BEGIN( MSG_ONE, gmsgSanity, NULL, pev );
+			WRITE_SHORT( (int)pev->sanity );
 		MESSAGE_END();
 	}
 
@@ -4367,12 +4460,14 @@ void CBasePlayer::UpdateClientData( void )
 	m_pClientActiveItem = m_pActiveItem;
 	m_iClientFOV = m_iFOV;
 
+#if 0
 	// Update Status Bar
 	if( m_flNextSBarUpdateTime < gpGlobals->time )
 	{
 		UpdateStatusBar();
 		m_flNextSBarUpdateTime = gpGlobals->time + 0.2f;
 	}
+#endif
 
 	// Send the current bhopcap state.
 	if( !m_bSentBhopcap )
@@ -4401,7 +4496,7 @@ BOOL CBasePlayer::FBecomeProne( void )
 //=========================================================
 void CBasePlayer::BarnacleVictimBitten( entvars_t *pevBarnacle )
 {
-	TakeDamage( pevBarnacle, pevBarnacle, pev->health + pev->armorvalue, DMG_SLASH | DMG_ALWAYSGIB );
+	TakeDamage( pevBarnacle, pevBarnacle, pev->health, DMG_SLASH | DMG_ALWAYSGIB );
 }
 
 //=========================================================
@@ -4936,6 +5031,57 @@ void CDeadHEV::Spawn( void )
 	pev->health = 8;
 
 	MonsterInitDead();
+}
+
+class CPlayerGainSanity : public CPointEntity
+{
+public:
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+	void KeyValue( KeyValueData *pkvd );
+
+	virtual int Save( CSave &save );
+	virtual int Restore( CRestore &restore );
+	static TYPEDESCRIPTION m_SaveData[];
+
+private:
+	float m_flSanGain;
+};
+
+LINK_ENTITY_TO_CLASS( player_gainsan, CPlayerGainSanity );
+
+TYPEDESCRIPTION	CPlayerGainSanity::m_SaveData[] =
+{
+	DEFINE_FIELD( CPlayerGainSanity, m_flSanGain, FIELD_FLOAT ),
+};
+
+IMPLEMENT_SAVERESTORE( CPlayerGainSanity, CPointEntity );
+
+void CPlayerGainSanity::KeyValue( KeyValueData *pkvd )
+{
+	if ( FStrEq( pkvd->szKeyName, "m_flSanGain" ) )
+	{
+		m_flSanGain = atof( pkvd->szValue );
+		pkvd->fHandled = TRUE;
+	}
+	else
+		CPointEntity::KeyValue( pkvd );
+}
+
+void CPlayerGainSanity::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	CBasePlayer *pPlayer = NULL;
+
+	if ( pActivator && pActivator->IsPlayer() )
+	{
+		pPlayer = (CBasePlayer *)pActivator;
+	}
+	else if ( !g_pGameRules->IsDeathmatch() )
+	{
+		pPlayer = (CBasePlayer *)CBaseEntity::Instance( g_engfuncs.pfnPEntityOfEntIndex( 1 ) );
+	}
+
+	if ( pPlayer )
+		pPlayer->LoseSanity( -m_flSanGain );
 }
 
 class CStripWeapons : public CPointEntity

@@ -400,7 +400,7 @@ void CTriggerRotTest::PostSpawn( void )
 	m_pReference = UTIL_FindEntityByTargetname(NULL, STRING(pev->netname));
 	m_pBridge = UTIL_FindEntityByTargetname(NULL, STRING(pev->noise1));
 	m_pHinge = UTIL_FindEntityByTargetname(NULL, STRING(pev->message));
-	pev->armorvalue = 0; // initial angle
+	pev->sanity = 0; // initial angle
 	if (pev->armortype == 0) //angle offset
 		pev->armortype = 30;
 	SetNextThink( 1 );
@@ -408,7 +408,7 @@ void CTriggerRotTest::PostSpawn( void )
 
 void CTriggerRotTest::Think( void )
 {
-//	ALERT(at_console, "Using angle = %.2f\n", pev->armorvalue);
+//	ALERT(at_console, "Using angle = %.2f\n", pev->sanity);
 	if (m_pReference)
 	{
 		m_pReference->pev->origin = pev->origin;
@@ -417,7 +417,7 @@ void CTriggerRotTest::Think( void )
 	}
 	if (m_pMarker)
 	{
-		Vector vecTemp = UTIL_AxisRotationToVec( (m_pHinge->pev->origin - pev->origin).Normalize(), pev->armorvalue );
+		Vector vecTemp = UTIL_AxisRotationToVec( (m_pHinge->pev->origin - pev->origin).Normalize(), pev->sanity );
 		m_pMarker->pev->origin = pev->origin + pev->health * vecTemp;
 
 //		ALERT(at_console, "vecTemp = %.2f %.2f %.2f\n", vecTemp.x, vecTemp.y, vecTemp.z);
@@ -425,15 +425,15 @@ void CTriggerRotTest::Think( void )
 	}
 	if (m_pBridge)
 	{
-		Vector vecTemp = UTIL_AxisRotationToAngles( (m_pHinge->pev->origin - pev->origin).Normalize(), pev->armorvalue );
+		Vector vecTemp = UTIL_AxisRotationToAngles( (m_pHinge->pev->origin - pev->origin).Normalize(), pev->sanity );
 		m_pBridge->pev->origin = pev->origin;
 		m_pBridge->pev->angles = vecTemp;
 
 //		ALERT(at_console, "vecTemp = %.2f %.2f %.2f\n", vecTemp.x, vecTemp.y, vecTemp.z);
 //		ALERT(at_console, "Set Marker = %.2f %.2f %.2f\n", m_pMarker->pev->origin.x, m_pMarker->pev->origin.y, m_pMarker->pev->origin.z);
 	}
-	pev->armorvalue += pev->armortype * 0.1f;
-	SetNextThink( 0.1 );
+	pev->sanity += pev->armortype * 0.1f;
+	SetNextThink( 0.1f );
 }
 
 //**********************************************************
@@ -800,7 +800,7 @@ void CMultiManager::ManagerThink( void )
 				m_iState = STATE_TURN_ON;
 			}
 			else //LRC- just start immediately.
-	{
+			{
 				m_startTime = 0;
 				m_iState = STATE_ON;
 			}
@@ -808,22 +808,31 @@ void CMultiManager::ManagerThink( void )
 				ALERT(at_console, "DEBUG: multi_manager \"%s\": restarting loop.\n", STRING(pev->targetname));
 			SetNextThink( m_startTime );
 			m_startTime += gpGlobals->time;
-	}
+		}
 		else
-	{
+		{
 			m_iState = STATE_OFF; //LRC- STATE_OFF means "yes, we've finished".
 			if ( IsClone() || pev->spawnflags & SF_MULTIMAN_ONLYONCE )
-		{
+			{
 				SetThink(&CMultiManager :: SUB_Remove );
 				SetNextThink( 0.1 );
 				SetUse( NULL );
+
+				// Cthulhu: but we still need to do our last triggers...
+				while ( index < m_cTargets && m_flTargetDelay[ index ] <= time )
+				{
+					//ALERT(at_console,"Manager sends %d to %s\n",m_triggerType,STRING(m_iTargetName[m_index]));
+					FireTargets( STRING( m_iTargetName[ index ] ), m_hActivator, this, m_triggerType, 0 );
+					index++;
+				}
+
 				if (pev->spawnflags & SF_MULTIMAN_DEBUG)
 					ALERT(at_console, "DEBUG: multi_manager \"%s\": killed.\n", STRING(pev->targetname));
-		}
+			}
 			else
 			{
 				SetThink( NULL );
-		SetUse( &CMultiManager::ManagerUse );// allow manager re-use 
+				SetUse( &CMultiManager::ManagerUse );// allow manager re-use 
 				if (pev->spawnflags & SF_MULTIMAN_DEBUG)
 					ALERT(at_console, "DEBUG: multi_manager \"%s\": last burst.\n", STRING(pev->targetname));
 			}
@@ -836,9 +845,13 @@ void CMultiManager::ManagerThink( void )
 		AbsoluteNextThink( m_startTime + m_flTargetDelay[ m_index ] );
 	}
 
+	// we don't do stuff while master is not triggered
+	if (!UTIL_IsMasterTriggered(m_sMaster,m_hActivator))
+		return;
+
 	while ( index < m_cTargets && m_flTargetDelay[ index ] <= time )
 	{
-//		ALERT(at_console,"Manager sends %d to %s\n",m_triggerType,STRING(m_iTargetName[m_index]));
+		//ALERT(at_console,"Manager sends %d to %s\n",m_triggerType,STRING(m_iTargetName[m_index]));
 		if (pev->spawnflags & SF_MULTIMAN_DEBUG)
 			ALERT(at_console, "DEBUG: multi_manager \"%s\": firing \"%s\".\n", STRING(pev->targetname), STRING( m_iTargetName[ index ] ));
 		FireTargets( STRING( m_iTargetName[ index ] ), m_hActivator, this, m_triggerType, 0 );
@@ -859,6 +872,7 @@ CMultiManager *CMultiManager::Clone( void )
 	if (m_iszThreadName) pMulti->pev->targetname = m_iszThreadName; //LRC
 	pMulti->m_triggerType = m_triggerType; //LRC
 	pMulti->m_iMode = m_iMode; //LRC
+	pMulti->m_sMaster = m_sMaster; //LRC
 	pMulti->m_flWait = m_flWait; //LRC
 	pMulti->m_flMaxWait = m_flMaxWait; //LRC
 	memcpy( pMulti->m_iTargetName, m_iTargetName, sizeof( m_iTargetName ) );
@@ -1548,7 +1562,7 @@ void CRenderFxManager::Affect( CBaseEntity *pTarget, BOOL bIsFirst, CBaseEntity 
 
 		pFader->m_flStartTime = gpGlobals->time;
 		pFader->m_flDuration = pev->frags;
-		pFader->m_flCoarseness = pev->armorvalue;
+		pFader->m_flCoarseness = pev->sanity;
 		pFader->SetNextThink( 0 );
 		pFader->Spawn();
 	}
@@ -2202,8 +2216,11 @@ class CTriggerHurt : public CBaseTrigger
 {
 public:
 	void Spawn( void );
+	void EXPORT HurtThink( void );
 	void EXPORT RadiationThink( void );
 	void EXPORT HurtTouch ( CBaseEntity *pOther );
+	void EXPORT Hurt ( CBaseEntity *pOther );
+	void EXPORT ToggleUse ( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	virtual void KeyValue( KeyValueData *pkvd );
 };
 
@@ -2262,8 +2279,33 @@ void CTriggerHurt :: Spawn( void )
 	UTIL_SetOrigin( this, pev->origin );		// Link into the list
 }
 
+void CTriggerHurt :: ToggleUse ( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	// if we are turning on
+	if ( pev->solid == SOLID_NOT )
+	{
+		// set the think to thinkhurt
+		SetThink( &CTriggerHurt::HurtThink );
+		SetNextThink( 0.0f );
+	}
+	else
+	{
+		DontThink();
+	}
+	CBaseTrigger::ToggleUse( pActivator, pCaller, useType, value );
+}
+
+
 // When touched, a hurt trigger does DMG points of damage each half-second
 void CTriggerHurt :: HurtTouch ( CBaseEntity *pOther )
+{
+	if (!UTIL_IsMasterTriggered(m_sMaster, pOther))
+		return;
+
+	Hurt( pOther );
+}
+
+void CTriggerHurt :: Hurt ( CBaseEntity *pOther )
 {
 	float fldmg;
 
@@ -2282,35 +2324,31 @@ void CTriggerHurt :: HurtTouch ( CBaseEntity *pOther )
 	// HACKHACK -- In multiplayer, players touch this based on packet receipt.
 	// So the players who send packets later aren't always hurt.  Keep track of
 	// how much time has passed and whether or not you've touched that player
-	if ( g_pGameRules->IsMultiplayer() )
+	if ( g_pGameRules->IsMultiplayer() || !(pev->spawnflags & SF_TRIGGER_HURT_CLIENTONLYTOUCH) )
 	{
 		if ( pev->dmgtime > gpGlobals->time )
 		{
 			if ( gpGlobals->time != pev->pain_finished )
 			{// too early to hurt again, and not same frame with a different entity
-				if ( pOther->IsPlayer() )
-				{
-					int playerMask = 1 << (pOther->entindex() - 1);
-
-					// If I've already touched this player (this time), then bail out
-					if ( pev->impulse & playerMask )
-						return;
-
-					// Mark this player as touched
-					// BUGBUG - There can be only 32 players!
-					pev->impulse |= playerMask;
-				}
-				else
-				{
+				if ( g_pGameRules->IsMultiplayer() && !pOther->IsPlayer() )
 					return;
-				}
+
+				int playerMask = 1 << (pOther->entindex() - 1);
+
+				// If I've already touched this player (this time), then bail out
+				if ( pev->impulse & playerMask )
+					return;
+
+				// Mark this player as touched
+				// BUGBUG - There can be only 32 players!
+				pev->impulse |= playerMask;
 			}
 		}
 		else
 		{
 			// New clock, "un-touch" all players
 			pev->impulse = 0;
-			if ( pOther->IsPlayer() )
+			if ( !g_pGameRules->IsMultiplayer() || pOther->IsPlayer() )
 			{
 				int playerMask = 1 << (pOther->entindex() - 1);
 
@@ -2384,6 +2422,26 @@ void CTriggerHurt :: HurtTouch ( CBaseEntity *pOther )
 	}
 }
 
+void CTriggerHurt :: HurtThink( void )
+{
+	// get everything in the area
+	#define TRIGGER_HURT_MAX_ENTITIES 1000
+	CBaseEntity* pList[TRIGGER_HURT_MAX_ENTITIES];
+	int iEntities = UTIL_EntitiesInBox( pList, 10, pev->mins, pev->maxs, (FL_CLIENT|FL_MONSTER) );
+
+	for (int i = 0; i < iEntities; i++)
+	{
+		Hurt( pList[i] );
+	}
+
+	// do we need to set the geiger counter off
+	if ( m_bitsDamageInflict & DMG_RADIATION )
+	{
+		RadiationThink();
+	}
+	SetNextThink( 0.25f );
+}
+
 // trigger hurt that causes radiation will do a radius
 // check and set the player's geiger counter level
 // according to distance from center of trigger
@@ -2444,6 +2502,7 @@ void CTriggerHurt :: RadiationThink( void )
 	SetNextThink( 0.25f );
 }
 
+#if 0
 //=====================================
 //
 // trigger_hevcharge
@@ -2496,14 +2555,14 @@ void CTriggerHevCharge :: ChargeTouch ( CBaseEntity *pOther )
 		return;
 	pev->dmgtime = gpGlobals->time + 0.5f;// half second delay until this trigger can hurt toucher again
 
-	int iNewArmor = pOther->pev->armorvalue + pev->frags;
+	int iNewArmor = pOther->pev->sanity + pev->frags;
 	if (iNewArmor > MAX_NORMAL_BATTERY) iNewArmor = MAX_NORMAL_BATTERY;
 	if (iNewArmor < 0)
 		iNewArmor = 0;
-	if (iNewArmor == pOther->pev->armorvalue) // if no change, we've finished.
+	if (iNewArmor == pOther->pev->sanity) // if no change, we've finished.
 		return;
 
-	pOther->pev->armorvalue = iNewArmor;
+	pOther->pev->sanity = iNewArmor;
 
 	//FIXME: support the 'target once' flag
 	if ( pev->target )
@@ -2537,7 +2596,7 @@ void CTriggerHevCharge :: AnnounceThink ( )
 
 	// Suit reports new power level
 	// For some reason this wasn't working in release build -- round it.
-	pct = (int)( (float)(pPlayer->pev->armorvalue * 100.0f) * (1.0f/MAX_NORMAL_BATTERY) + 0.5f);
+	pct = (int)( (float)(pPlayer->pev->sanity * 100.0f) * (1.0f/MAX_NORMAL_BATTERY) + 0.5f);
 	pct = (pct / 5);
 	if (pct > 0)
 	pct--;
@@ -2547,6 +2606,7 @@ void CTriggerHevCharge :: AnnounceThink ( )
 			
 	((CBasePlayer*)pPlayer)->SetSuitUpdate(szcharge, FALSE, SUIT_REPEAT_OK);
 }
+#endif
 
 
 //=====================================
@@ -2869,7 +2929,8 @@ void CTriggerMultiple :: MultiWaitOver( void )
 //		pev->takedamage	= DAMAGE_YES;
 //		pev->solid		= SOLID_BBOX;
 //		}
-	SetThink( NULL );
+	//SetThink( NULL );
+	DontThink();
 }
 
 //=====================================
@@ -3044,7 +3105,30 @@ TYPEDESCRIPTION	CTriggerInOut::m_SaveData[] =
 	DEFINE_FIELD( CTriggerInOut, m_pRegister, FIELD_CLASSPTR ),
 };
 
-IMPLEMENT_SAVERESTORE(CTriggerInOut,CBaseTrigger);
+// Cthulhu : a hack to get the registers to work properly
+//IMPLEMENT_SAVERESTORE(CTriggerInOut,CBaseTrigger);
+int CTriggerInOut::Save( CSave &save )
+{
+	if ( !CBaseTrigger::Save( save ) )
+		return 0;
+
+	if ( pev->targetname )
+		return save.WriteFields( STRING(pev->targetname), "CTriggerInOut", this, m_SaveData, ARRAYSIZE(m_SaveData) );
+	else
+		return save.WriteFields( STRING(pev->classname), "CTriggerInOut", this, m_SaveData, ARRAYSIZE(m_SaveData) );
+}
+
+int CTriggerInOut::Restore( CRestore &restore )
+{
+	if ( !CBaseTrigger::Restore(restore) )
+		return 0;
+	int status = restore.ReadFields( "CTriggerInOut", this, m_SaveData, ARRAYSIZE(m_SaveData) );
+
+	// and schedule a think
+	SetNextThink(0.1f);
+
+	return status;
+}
 
 void CTriggerInOut::KeyValue( KeyValueData *pkvd )
 {
@@ -3253,7 +3337,6 @@ public:
 	void EXPORT TouchChangeLevel( CBaseEntity *pOther );
 	void ChangeLevelNow( CBaseEntity *pActivator );
 
-	static edict_t *FindLandmark( const char *pLandmarkName );
 	static int ChangeList( LEVELLIST *pLevelList, int maxList );
 	static int AddTransitionToList( LEVELLIST *pLevelList, int listCount, const char *pMapName, const char *pLandmarkName, edict_t *pentLandmark );
 	static int InTransitionVolume( CBaseEntity *pEntity, char *pVolumeName );
@@ -3305,6 +3388,13 @@ void CChangeLevel::KeyValue( KeyValueData *pkvd )
 		if( strlen( pkvd->szValue ) >= cchMapNameMost )
 			ALERT( at_error, "Landmark name '%s' too long (32 chars)\n", pkvd->szValue );
 		strcpy( m_szLandmarkName, pkvd->szValue );
+
+		// Cthulhu: is this the insane map landmark
+		if( FStrEq( m_szLandmarkName, "lm_insane" ) )
+		{
+			strcpy( m_szMapName, st_szPreInsaneMap );
+		}
+
 		pkvd->fHandled = TRUE;
 	}
 	else if( FStrEq( pkvd->szKeyName, "changetarget" ) )
@@ -3356,7 +3446,7 @@ void CChangeLevel::ExecuteChangeLevel( void )
 FILE_GLOBAL char st_szNextMap[cchMapNameMost];
 FILE_GLOBAL char st_szNextSpot[cchMapNameMost];
 
-edict_t *CChangeLevel::FindLandmark( const char *pLandmarkName )
+edict_t *UTIL_FindLandmark( const char *pLandmarkName )
 {
 	CBaseEntity	*pLandmark;
 
@@ -3407,6 +3497,12 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 		return;
 	}
 
+	// Cthulhu: shut down any active cameras.
+	UTIL_ShutDownCameras();
+
+	// Cthulhu: shut down any book pages
+	UTIL_ReadBook("");
+
 	// Create an entity to fire the changetarget
 	if( m_changeTarget )
 	{
@@ -3431,7 +3527,7 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
 	st_szNextSpot[0] = 0;	// Init landmark to NULL
 
 	// look for a landmark entity
-	pentLandmark = FindLandmark( m_szLandmarkName );
+	pentLandmark = UTIL_FindLandmark( m_szLandmarkName );
 	if( !FNullEnt( pentLandmark ) )
 	{
 		strcpy( st_szNextSpot, m_szLandmarkName );
@@ -3541,7 +3637,7 @@ int CChangeLevel::ChangeList( LEVELLIST *pLevelList, int maxList )
 		if( pTrigger )
 		{
 			// Find the corresponding landmark
-			pentLandmark = FindLandmark( pTrigger->m_szLandmarkName );
+			pentLandmark = UTIL_FindLandmark( pTrigger->m_szLandmarkName );
 			if( pentLandmark )
 			{
 				// Build a list of unique transitions
@@ -3784,6 +3880,9 @@ void CTriggerPush::Touch( CBaseEntity *pOther )
 		return;
 	}
 
+	// are we turned on?
+	if (pev->solid == SOLID_NOT) return;
+
 	Vector vecPush;
 	if (!FStringNull(m_iszPushVel))
 		vecPush = CalcLocus_Velocity( this, pOther, STRING(m_iszPushVel) );
@@ -3851,10 +3950,10 @@ void CTriggerBounce :: Touch( CBaseEntity *pOther )
 		return;
  	
 	float dot = DotProduct(pev->movedir, pOther->pev->velocity);
-	if (dot < -pev->armorvalue)
+	if (dot < -pev->sanity)
 	{
 		if (pev->spawnflags & SF_BOUNCE_CUTOFF)
-			pOther->pev->velocity = pOther->pev->velocity - (dot + pev->frags*(dot+pev->armorvalue))*pev->movedir;
+			pOther->pev->velocity = pOther->pev->velocity - (dot + pev->frags*(dot+pev->sanity))*pev->movedir;
 		else
 			pOther->pev->velocity = pOther->pev->velocity - (dot + pev->frags*dot)*pev->movedir;
 		SUB_UseTargets( pOther, USE_TOGGLE, 0 );
@@ -5006,9 +5105,9 @@ void CTriggerChangeCVar::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE
 			sprintf( szCommand, "%s \"%s\"\n", STRING(pev->netname), STRING(pev->message) );
 			pev->spawnflags |= SF_CVAR_ACTIVE;
 
-			if (pev->armorvalue >= 0)
+			if (pev->sanity >= 0)
 			{
-				SetNextThink( pev->armorvalue );
+				SetNextThink( pev->sanity );
 			}
 		}
 		SERVER_COMMAND( szCommand );
@@ -5132,6 +5231,8 @@ void CTriggerCamera::KeyValue( KeyValueData *pkvd )
 		CBaseDelay::KeyValue( pkvd );
 }
 
+extern int gmsgHideWeapon;
+
 void CTriggerCamera::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 {
 	if( !ShouldToggle( useType, m_state ) )
@@ -5207,6 +5308,10 @@ void CTriggerCamera::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYP
 		pev->velocity = Vector( 0, 0, 0 );
 	}
 
+	MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, ((CBasePlayer *)((CBaseEntity *)m_hPlayer))->pev );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
 	//LRC
 	if (m_iszViewEntity)
 	{
@@ -5245,6 +5350,11 @@ void CTriggerCamera::FollowTarget()
 		}
 		SUB_UseTargets( this, USE_TOGGLE, 0 );
 		pev->avelocity = Vector( 0, 0, 0 );
+
+		MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, ((CBasePlayer *)((CBaseEntity *)m_hPlayer))->pev );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
 		m_state = 0;
 		return;
 	}
@@ -5322,7 +5432,9 @@ void CTriggerCamera::Move()
 			Vector delta = m_pentPath->pev->origin - pev->origin;
 			m_moveDistance = delta.Length();
 			pev->movedir = delta.Normalize();
-			m_flStopTime = gpGlobals->time + m_pentPath->GetDelay();
+			// I think there is a bug here.
+			//m_flStopTime = gpGlobals->time + m_pentPath->GetDelay();
+			if (gpGlobals->time >= m_flStopTime) m_flStopTime = gpGlobals->time + m_pentPath->GetDelay();
 		}
 	}
 
@@ -5333,4 +5445,22 @@ void CTriggerCamera::Move()
 
 	float fraction = 2 * gpGlobals->frametime;
 	pev->velocity = ( ( pev->movedir * pev->speed ) * fraction ) + ( pev->velocity * ( 1 - fraction ) );
+}
+
+void UTIL_ShutDownCameras( void )
+{
+	CTriggerCamera* pCamera = NULL;
+	do
+	{
+		// find all camera entities
+		pCamera = (CTriggerCamera *)UTIL_FindEntityByClassname( pCamera, "trigger_camera" );
+		if ( !pCamera ) break;
+		// is it active
+		if ( pCamera->m_state )
+		{
+			// tell the camera that it's time is up, and to hand control back to the player
+			pCamera->m_flReturnTime = gpGlobals->time - 1.0f;
+			pCamera->FollowTarget();
+		}
+	} while (true);
 }

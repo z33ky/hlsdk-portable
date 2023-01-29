@@ -55,20 +55,8 @@ if (USE_VGUI)
 endif()
 
 set (CLDLL_SOURCES
-	../dlls/crossbow.cpp
-	../dlls/crowbar.cpp
-	../dlls/egon.cpp
-	../dlls/gauss.cpp
-	../dlls/handgrenade.cpp
-	../dlls/hornetgun.cpp
-	../dlls/mp5.cpp
-	../dlls/python.cpp
-	../dlls/rpg.cpp
-	../dlls/satchel.cpp
+	../dlls/revolver.cpp
 	../dlls/shotgun.cpp
-	../dlls/squeakgrenade.cpp
-	../dlls/tripmine.cpp
-	../dlls/glock.cpp
 	ev_hldm.cpp
 	hl/hl_baseentity.cpp
 	hl/hl_events.cpp
@@ -77,7 +65,6 @@ set (CLDLL_SOURCES
 	ammo.cpp
 	ammo_secondary.cpp
 	ammohistory.cpp
-	battery.cpp
 	cdll_int.cpp
 	com_weapons.cpp
 	death.cpp
@@ -86,7 +73,6 @@ set (CLDLL_SOURCES
 	ev_common.cpp
 	events.cpp
 	flashlight.cpp
-	GameStudioModelRenderer.cpp
 	geiger.cpp
 	health.cpp
 	hud.cpp
@@ -108,6 +94,8 @@ set (CLDLL_SOURCES
 	../pm_shared/pm_debug.c
 	../pm_shared/pm_math.c
 	../pm_shared/pm_shared.c
+	readbook.cpp
+	sanity.cpp
 	saytext.cpp
 	status_icons.cpp
 	statusbar.cpp
@@ -133,14 +121,13 @@ if (USE_VGUI)
 		vgui_SpectatorPanel.cpp
 		vgui_teammenu.cpp
 		voice_status.cpp
-		../game_shared/vgui_checkbutton2.cpp
+		#../game_shared/vgui_checkbutton2.cpp
 		../game_shared/vgui_grid.cpp
-		../game_shared/vgui_helpers.cpp
+		#../game_shared/vgui_helpers.cpp
 		../game_shared/vgui_listbox.cpp
 		../game_shared/vgui_loadtga.cpp
 		../game_shared/vgui_scrollbar2.cpp
 		../game_shared/vgui_slider2.cpp
-		../game_shared/voice_banmgr.cpp
 		)
 	if (USE_NOVGUI_MOTD)
 		list(APPEND CLDLL_SOURCES MOTD.cpp)
@@ -169,6 +156,8 @@ if(USE_VOICEMGR)
 	#	${CLDLL_SOURCES}
 	#	../game_shared/voice_banmgr.cpp
 	#	../game_shared/voice_status.cpp)
+else()
+	add_definitions(-DVOICEMGR_STUB)
 endif()
 
 add_library (${CLDLL_LIBRARY} SHARED ${CLDLL_SOURCES})

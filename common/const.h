@@ -54,6 +54,9 @@
 #define FL_CUSTOMENTITY	(1<<29)	// This is a custom entity
 #define FL_KILLME		(1<<30)	// This entity is marked for death -- This allows the engine to kill ents at the appropriate time
 #define FL_DORMANT		(1<<31)	// Entity is dormant, no updates to client
+//FIXME: the original mod code defined this as (1<<32), which is past the bounds of a 4-byte int
+//       MSVC and GCC both seem to evaluate this to 0, so the flag was probably non-functional anyways
+#define FL_BURNING_CLIP	0	// monster will avoid burning area
 
 // Goes into globalvars_t.trace_flags
 #define FTRACE_SIMPLEBOX		(1<<0)	// Traceline with a simple box

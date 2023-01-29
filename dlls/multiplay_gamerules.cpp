@@ -141,7 +141,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// override some values for multiplay.
 
 	// suitcharger
+#if 0
 	gSkillData.suitchargerCapacity = 30;
+#endif
 
 	// Crowbar whack
 	gSkillData.plrDmgCrowbar = 25;
@@ -159,7 +161,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.plrDmgM203Grenade = 100;
 
 	// Shotgun buckshot
+#if 0
 	gSkillData.plrDmgBuckshot = 20;// fewer pellets in deathmatch
+#endif
 
 	// Crossbow
 	gSkillData.plrDmgCrossbowClient = 20;
@@ -598,8 +602,10 @@ void CHalfLifeMultiplay::PlayerSpawn( CBasePlayer *pPlayer )
 	if( addDefault )
 	{
 		pPlayer->GiveNamedItem( "weapon_crowbar" );
+#if 0
 		pPlayer->GiveNamedItem( "weapon_9mmhandgun" );
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
+#endif
 	}
 
 	pPlayer->m_iAutoWepSwitch = iOldAutoWepSwitch;

@@ -873,8 +873,10 @@ void ClientPrecache( void )
 
 	// PRECACHE_SOUND( "player/pl_jumpland2.wav" );		// UNDONE: play 2x step sound
 
+#if 0
 	PRECACHE_SOUND( "player/pl_fallpain2.wav" );
 	PRECACHE_SOUND( "player/pl_fallpain3.wav" );
+#endif
 
 	PRECACHE_SOUND( "player/pl_step1.wav" );		// walk on concrete
 	PRECACHE_SOUND( "player/pl_step2.wav" );
@@ -951,11 +953,17 @@ void ClientPrecache( void )
 	PRECACHE_SOUND( "common/bodysplat.wav" );
 
 	// player pain sounds
+#if 0
 	PRECACHE_SOUND( "player/pl_pain2.wav" );
 	PRECACHE_SOUND( "player/pl_pain4.wav" );
 	PRECACHE_SOUND( "player/pl_pain5.wav" );
 	PRECACHE_SOUND( "player/pl_pain6.wav" );
 	PRECACHE_SOUND( "player/pl_pain7.wav" );
+#else
+	PRECACHE_SOUND( "player/rs_pain1.wav" );
+	PRECACHE_SOUND( "player/rs_pain2.wav" );
+	PRECACHE_SOUND( "player/rs_pain3.wav" );
+#endif
 
 	PRECACHE_MODEL( "models/player.mdl" );
 
@@ -1806,6 +1814,8 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 			cd->m_flNextAttack = pl->m_flNextAttack;
 			cd->fuser2 = pl->m_flNextAmmoBurn;
 			cd->fuser3 = pl->m_flAmmoStartCharge;
+			cd->vuser1.x = pl->ammo_revolver;
+#if 0
 			cd->vuser1.x = pl->ammo_9mm;
 			cd->vuser1.y = pl->ammo_357;
 			cd->vuser1.z = pl->ammo_argrens;
@@ -1814,6 +1824,7 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 			cd->ammo_rockets = pl->ammo_rockets;
 			cd->ammo_cells = pl->ammo_uranium;
 			cd->vuser2.x = pl->ammo_hornets;
+#endif
 
 			if( pl->m_pActiveItem )
 			{
@@ -1831,11 +1842,13 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 					cd->vuser4.y = pl->m_rgAmmo[gun->m_iPrimaryAmmoType];
 					cd->vuser4.z = pl->m_rgAmmo[gun->m_iSecondaryAmmoType];
 
+#if 0
 					if( pl->m_pActiveItem->m_iId == WEAPON_RPG )
 					{
 						cd->vuser2.y = ( (CRpg *)pl->m_pActiveItem )->m_fSpotActive;
 						cd->vuser2.z = ( (CRpg *)pl->m_pActiveItem )->m_cActiveRockets;
 					}
+#endif
 				}
 			}
 		}

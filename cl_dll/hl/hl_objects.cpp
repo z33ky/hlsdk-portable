@@ -27,6 +27,7 @@
 #include "entity_types.h"
 #include "r_efx.h"
 
+#if 0
 extern BEAM *pBeam;
 extern BEAM *pBeam2;
 extern TEMPENTITY *pFlare;	// Vit_amiN: egon's energy flare
@@ -99,6 +100,7 @@ void UpdateBeams( void )
 		}
 	}
 }
+#endif
 
 /*
 =====================
@@ -109,6 +111,8 @@ Add game specific, client-side objects here
 */
 void Game_AddObjects( void )
 {
+#if 0
 	if( pBeam || pBeam2 || pFlare )	// Vit_amiN: egon flare added
 		UpdateBeams();
+#endif
 }

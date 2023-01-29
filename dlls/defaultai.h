@@ -71,6 +71,7 @@ extern Schedule_t	slMeleeAttack[];
 
 // Chase enemy schedule
 extern Schedule_t slChaseEnemy[];
+extern Schedule_t slChaseEnemyLKP[];
 
 //=========================================================
 // small flinch, used when a relatively minor bit of damage

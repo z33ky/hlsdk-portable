@@ -46,20 +46,17 @@ set (SVDLL_SOURCES
 	barnacle.cpp
 	barney.cpp
 	bigmomma.cpp
+	bm.cpp
 	bloater.cpp
 	bmodels.cpp
-	bullsquid.cpp
 	buttons.cpp
 	cbase.cpp
 	client.cpp
 	combat.cpp
 	controller.cpp
-	crossbow.cpp
-	crowbar.cpp
 	defaultai.cpp
 	doors.cpp
 	effects.cpp
-	egon.cpp
 	explode.cpp
 	flyingmonster.cpp
 	func_break.cpp
@@ -67,25 +64,19 @@ set (SVDLL_SOURCES
 	game.cpp
 	gamerules.cpp
 	gargantua.cpp
-	gauss.cpp
+	spiral.cpp
 	genericmonster.cpp
 	ggrenade.cpp
 	globals.cpp
-	glock.cpp
 	gman.cpp
 	h_ai.cpp
-	h_battery.cpp
 	h_cine.cpp
 	h_cycler.cpp
 	h_export.cpp
-	handgrenade.cpp
 	hassassin.cpp
 	headcrab.cpp
 	healthkit.cpp
-	hgrunt.cpp
 	hornet.cpp
-	hornetgun.cpp
-	houndeye.cpp
 	ichthyosaur.cpp
 	islave_deamon.cpp
 	items.cpp
@@ -98,7 +89,6 @@ set (SVDLL_SOURCES
 	monsterstate.cpp
 	mortar.cpp
 	movewith.cpp
-	mp5.cpp
 	multiplay_gamerules.cpp
 	nihilanth.cpp
 	nodes.cpp
@@ -109,11 +99,8 @@ set (SVDLL_SOURCES
 	plats.cpp
 	player.cpp
 	playermonster.cpp
-	python.cpp
 	rat.cpp
 	roach.cpp
-	rpg.cpp
-	satchel.cpp
 	schedule.cpp
 	scientist.cpp
 	scripted.cpp
@@ -124,20 +111,84 @@ set (SVDLL_SOURCES
 	soundent.cpp
 	spectator.cpp
 	squadmonster.cpp
-	squeakgrenade.cpp
 	subs.cpp
 	talkmonster.cpp
 	teamplay_gamerules.cpp
 	tempmonster.cpp
 	tentacle.cpp
 	triggers.cpp
-	tripmine.cpp
 	turret.cpp
 	util.cpp
 	weapons.cpp
 	world.cpp
 	xen.cpp
 	zombie.cpp
+
+	Chicken.cpp
+	ClimbingMonster.cpp
+	Cow.cpp
+	Cthonian.cpp
+	Dagger.cpp
+	DeepOne.cpp
+	DimensionalShambler.cpp
+	DreadName.cpp
+	DunwichHorror.cpp
+	FormlessSpawn.cpp
+	Gangster.cpp
+	Ghoul.cpp
+	GreatRace.cpp
+	HuntingHorror.cpp
+	NightGaunt.cpp
+	PowderOfIbn.cpp
+	Priest.cpp
+	Rifle.cpp
+	SerpentMan.cpp
+	SerpentStaff.cpp
+	SirHenry.cpp
+	Snake.cpp
+	Stukabat.cpp
+	SwordCane.cpp
+	TRex.cpp
+	TommyGun.cpp
+	Yodan.cpp
+	alien_egg.cpp
+	book.cpp
+	butler.cpp
+	charm.cpp
+	civilian.cpp
+	cthulhu.cpp
+	cultist.cpp
+	drainlife.cpp
+	dynamite.cpp
+	eihortvictim.cpp
+	elder_sign.cpp
+	furniture.cpp
+	golem.cpp
+	hellhound.cpp
+	hologram.cpp
+	kingpin.cpp
+	laserspot.cpp
+	lightning_gun.cpp
+	molotov.cpp
+	monster_PowderOfIbn.cpp
+	monster_dynamite.cpp
+	monster_molotov.cpp
+	orderly.cpp
+	policeman.cpp
+	ranulf.cpp
+	revolver.cpp
+	rlyeh_seal.cpp
+	servitor.cpp
+	shrivelling.cpp
+	spider.cpp
+	stukagrenade.cpp
+	szlachta.cpp
+	teleport.cpp
+	tindalos.cpp
+	werewolf.cpp
+	wolf.cpp
+	wraith.cpp
+
 	../pm_shared/pm_debug.c
 	../pm_shared/pm_math.c
 	../pm_shared/pm_shared.c

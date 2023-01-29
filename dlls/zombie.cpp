@@ -134,7 +134,7 @@ void CZombie::SetYawSpeed( void )
 int CZombie::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
 	// Take 30% damage from bullets
-	if( bitsDamageType == DMG_BULLET )
+	if ( bitsDamageType & DMG_BULLET )
 	{
 		Vector vecDir = pev->origin - ( pevInflictor->absmin + pevInflictor->absmax ) * 0.5f;
 		vecDir = vecDir.Normalize();
@@ -161,7 +161,8 @@ void CZombie::AlertSound( void )
 {
 	int pitch = 95 + RANDOM_LONG( 0, 9 );
 
-	EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pAlertSounds ), 1.0, ATTN_NORM, 0, pitch );
+	if (RANDOM_LONG(0,5) < 3)
+		EMIT_SOUND_DYN( ENT( pev ), CHAN_VOICE, RANDOM_SOUND_ARRAY( pAlertSounds ), 1.0, ATTN_NORM, 0, pitch );
 }
 
 void CZombie::IdleSound( void )
@@ -274,7 +275,18 @@ void CZombie::Spawn()
 
 	pev->solid		= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	m_bloodColor		= BLOOD_COLOR_GREEN;
+	if( pev->body == 1 ) // skeleton
+	{
+		m_bloodColor		= DONT_BLEED;
+	}
+	else if( pev->body == 0 ) // corpse
+	{
+		m_bloodColor		= BLOOD_COLOR_RED;
+	}
+	else
+	{
+		m_bloodColor		= BLOOD_COLOR_GREEN;
+	}
 	if (pev->health == 0)
 		pev->health		= gSkillData.zombieHealth;
 	pev->view_ofs		= VEC_VIEW;// position of the eyes relative to monster's origin.
@@ -329,4 +341,89 @@ int CZombie::IgnoreConditions( void )
 	}
 
 	return iIgnore;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+class CDeadZombie : public CBaseMonster
+{
+public:
+	void Spawn( void );
+	int	Classify ( void ) { return CLASS_ALIEN_MONSTER; }
+
+	void KeyValue( KeyValueData *pkvd );
+
+	int	m_iPose;// which sequence to display -- temporary, don't need to save
+	static const char *m_szPoses[8];
+};
+
+
+const char *CDeadZombie::m_szPoses[] = {
+	"hanging1",
+	"hanging2",
+	"hanging3",
+	"hanging4",
+	"hanging5",
+	"dead1",
+	"dead2",
+	"dead3",
+};
+
+void CDeadZombie::KeyValue( KeyValueData *pkvd )
+{
+	if ( FStrEq( pkvd->szKeyName, "pose" ) )
+	{
+		m_iPose = atoi( pkvd->szValue );
+		pkvd->fHandled = TRUE;
+	}
+	else 
+		CBaseMonster::KeyValue( pkvd );
+}
+
+LINK_ENTITY_TO_CLASS( monster_zombie_dead, CDeadZombie );
+
+//=========================================================
+// ********** DeadZombie SPAWN **********
+//=========================================================
+void CDeadZombie :: Spawn( void )
+{
+	if (pev->model)
+	{
+		PRECACHE_MODEL(STRING(pev->model)); //LRC
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	}
+	else
+	{
+		PRECACHE_MODEL( "models/monsters/zombiedead.mdl" );
+		SET_MODEL( ENT( pev ), "models/monsters/zombiedead.mdl" );
+	}
+
+	pev->effects = 0;
+	pev->yaw_speed = 8;
+	pev->sequence = 0;
+
+	if( pev->body == 1 ) // skeleton
+	{
+		m_bloodColor = DONT_BLEED;
+	}
+	else if( pev->body == 0 ) // corpse
+	{
+		m_bloodColor = BLOOD_COLOR_RED;
+	}
+	else
+	{
+		m_bloodColor = BLOOD_COLOR_GREEN;
+	}
+
+	pev->sequence = LookupSequence( m_szPoses[m_iPose] );
+
+	if( pev->sequence == -1 )
+	{
+		ALERT( at_console, "Dead zombie with bad pose\n" );
+	}
+
+	// Corpses have less health
+	pev->health = 8;
+
+	MonsterInitDead();
 }

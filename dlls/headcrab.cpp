@@ -506,15 +506,22 @@ LINK_ENTITY_TO_CLASS( monster_babycrab, CBabyCrab )
 void CBabyCrab::Spawn( void )
 {
 	CHeadCrab::Spawn();
+#if 0
 	if (pev->model)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
+#endif
 		SET_MODEL( ENT( pev ), "models/baby_headcrab.mdl" );
 	pev->rendermode = kRenderTransTexture;
 	pev->renderamt = 192;
+#if 0
 	UTIL_SetSize( pev, Vector( -12, -12, 0 ), Vector( 12, 12, 24 ) );
+#else
+	UTIL_SetSize(pev, Vector(-10, -10, 0), Vector(10, 10, 20));
+#endif
 	
-	pev->health = gSkillData.headcrabHealth * 0.25f;	// less health than full grown
+	if ( pev->health == 0 )
+		pev->health = gSkillData.headcrabHealth * 0.25f;	// less health than full grown
 }
 
 void CBabyCrab::Precache( void )

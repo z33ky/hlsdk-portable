@@ -167,7 +167,7 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_MONSTER_9MM:
 		case BULLET_PLAYER_MP5:
 		case BULLET_MONSTER_MP5:
-		case BULLET_PLAYER_BUCKSHOT:
+		case BULLET_PLAYER_SHOTGUN:
 		case BULLET_PLAYER_357:
 		default:
 			// smoke and decal
@@ -296,18 +296,58 @@ void W_Precache( void )
 	// common world objects
 	UTIL_PrecacheOther( "item_suit" );
 	UTIL_PrecacheOther( "item_healthkit" );
+#if 0
 	UTIL_PrecacheOther( "item_battery" );
+#endif
 	UTIL_PrecacheOther( "item_antidote" );
+#if 0
 	UTIL_PrecacheOther( "item_security" );
+#else
+	UTIL_PrecacheOther( "item_key" );
+#endif
 	UTIL_PrecacheOther( "item_longjump" );
 
 	// shotgun
 	UTIL_PrecacheOtherWeapon( "weapon_shotgun" );
-	UTIL_PrecacheOther( "ammo_buckshot" );
+	UTIL_PrecacheOther( "ammo_shotgun" );
 
-	// crowbar
-	UTIL_PrecacheOtherWeapon( "weapon_crowbar" );
+	// swordcane & knife
+	UTIL_PrecacheOtherWeapon( "weapon_knife" );
+	UTIL_PrecacheOtherWeapon( "weapon_swordcane" );
 
+	// revolver
+	UTIL_PrecacheOtherWeapon( "weapon_revolver" );
+	UTIL_PrecacheOther( "ammo_revolver" );
+
+	// rifle
+	UTIL_PrecacheOtherWeapon( "weapon_rifle" );
+	UTIL_PrecacheOther( "ammo_rifle" );
+
+	// tommy gun
+	UTIL_PrecacheOtherWeapon( "weapon_tommygun" );
+	UTIL_PrecacheOther( "ammo_tommygun" );
+//	UTIL_PrecacheOther( "ammo_ARgrenades" );
+
+	// explosives
+	UTIL_PrecacheOtherWeapon( "weapon_molotov" );
+	UTIL_PrecacheOtherWeapon( "weapon_dynamite" );
+	UTIL_PrecacheOtherWeapon( "weapon_powderofibn" );
+
+	// magic
+	UTIL_PrecacheOtherWeapon( "weapon_rlyeh_seal" );
+	UTIL_PrecacheOtherWeapon( "weapon_eldersign" );
+	UTIL_PrecacheOtherWeapon( "weapon_shrivelling" );
+	UTIL_PrecacheOtherWeapon( "weapon_dread_name" );
+	UTIL_PrecacheOtherWeapon( "weapon_drainlife" );
+	UTIL_PrecacheOtherWeapon( "weapon_charm" );
+
+	// artefacts
+	UTIL_PrecacheOtherWeapon( "weapon_lightninggun" );
+	UTIL_PrecacheOtherWeapon( "weapon_serpentstaff" );
+	UTIL_PrecacheOtherWeapon( "weapon_teleport" );
+	UTIL_PrecacheOtherWeapon( "weapon_hologram" );
+
+#if 0
 	// glock
 	UTIL_PrecacheOtherWeapon( "weapon_9mmhandgun" );
 	UTIL_PrecacheOther( "ammo_9mmclip" );
@@ -352,6 +392,7 @@ void W_Precache( void )
 
 	// hornetgun
 	UTIL_PrecacheOtherWeapon( "weapon_hornetgun" );
+#endif
 
 	if( g_pGameRules->IsDeathmatch() )
 	{
@@ -371,6 +412,10 @@ void W_Precache( void )
 	// used by explosions
 	PRECACHE_MODEL( "models/grenade.mdl" );
 	PRECACHE_MODEL( "sprites/explode1.spr" );
+	PRECACHE_MODEL( "models/stickygib.mdl" );
+	PRECACHE_MODEL( "sprites/xffloor.spr" );
+	PRECACHE_MODEL( "sprites/fire.spr" );
+	PRECACHE_SOUND( "ambience/burning1.wav" );
 
 	PRECACHE_SOUND( "weapons/debris1.wav" );// explosion aftermaths
 	PRECACHE_SOUND( "weapons/debris2.wav" );// explosion aftermaths
@@ -1215,6 +1260,7 @@ float CBasePlayerWeapon::GetNextAttackDelay( float delay )
 //=========================================================
 void CBasePlayerWeapon::DrainClip(CBasePlayer* pPlayer, BOOL keep, int i9mm, int i357, int iBuck, int iBolt, int iARGren, int iRock, int iUranium, int iSatchel, int iSnark, int iTrip, int iGren )
 {
+#if 0
 	int iPAI = PrimaryAmmoIndex();
 	int iAmt;
 	if (iPAI == -1) return;
@@ -1245,6 +1291,7 @@ void CBasePlayerWeapon::DrainClip(CBasePlayer* pPlayer, BOOL keep, int i9mm, int
 	// into the main ammo store
 	if (!keep)
 		pPlayer->m_rgAmmo[iPAI] = m_iClip;
+#endif
 }
 
 //*********************************************************
@@ -1627,6 +1674,7 @@ void CBasePlayerWeapon::PrintState( void )
 	ALERT( at_console, "m_iclip:  %i\n", m_iClip );
 }
 
+#if 0
 TYPEDESCRIPTION	CRpg::m_SaveData[] =
 {
 	DEFINE_FIELD( CRpg, m_fSpotActive, FIELD_INTEGER ),
@@ -1692,3 +1740,4 @@ TYPEDESCRIPTION	CSatchel::m_SaveData[] =
 };
 
 IMPLEMENT_SAVERESTORE( CSatchel, CBasePlayerWeapon )
+#endif

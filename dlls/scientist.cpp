@@ -705,6 +705,15 @@ void CScientist::TalkInit()
 {
 	CTalkMonster::TalkInit();
 
+	// scientist will try to talk to friends in this order:
+
+	//FIXME: m_szFriends is static, so this overrides the order for all monsters!
+	m_szFriends[0] = "monster_civilain";
+	m_szFriends[1] = "monster_sitting_civilian";
+	m_szFriends[2] = "monster_scientist";
+	m_szFriends[3] = "monster_sitting_scientist";
+	m_szFriends[4] = "monster_policeman";
+
 	// scientists speach group names (group names are in sentences.txt)
 
 	if (!m_iszSpeakAs)
@@ -1147,8 +1156,16 @@ LINK_ENTITY_TO_CLASS( monster_scientist_dead, CDeadScientist )
 //
 void CDeadScientist::Spawn()
 {
-	PRECACHE_MODEL( "models/scientist.mdl" );
-	SET_MODEL( ENT( pev ), "models/scientist.mdl" );
+	if( pev->model )
+	{
+		PRECACHE_MODEL(STRING(pev->model)); //LRC
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	}
+	else
+	{
+		PRECACHE_MODEL( "models/scientist.mdl" );
+		SET_MODEL( ENT( pev ), "models/scientist.mdl" );
+	}
 
 	pev->effects = 0;
 	pev->sequence = 0;

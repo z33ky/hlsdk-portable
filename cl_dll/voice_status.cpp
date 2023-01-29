@@ -24,6 +24,17 @@
 #include "vgui_helpers.h"
 #include "VGUI_MouseCode.h"
 
+#if VOICEMGR_STUB
+CVoiceBanMgr::CVoiceBanMgr(){}
+CVoiceBanMgr::~CVoiceBanMgr(){}
+bool CVoiceBanMgr::Init( char const *pGameDir ) { return false; }
+void CVoiceBanMgr::Term() {}
+void CVoiceBanMgr::SaveState( char const *pGameDir ) {}
+bool CVoiceBanMgr::GetPlayerBan( char const playerID[16] ) { return false; }
+void CVoiceBanMgr::SetPlayerBan( char const playerID[16], bool bSquelch ) {}
+void CVoiceBanMgr::ForEachBannedPlayer( void (*callback)( char id[16] ) ) {}
+#endif
+
 
 
 using namespace vgui;

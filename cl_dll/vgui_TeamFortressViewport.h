@@ -126,6 +126,7 @@ public:
 	void LoadImage(const char * pImageName);
 	CImageLabel( const char* pImageName,int x,int y );
 	CImageLabel( const char* pImageName,int x,int y,int wide,int tall );
+	virtual ~CImageLabel();
 
 	virtual int getImageTall();
 	virtual int getImageWide();

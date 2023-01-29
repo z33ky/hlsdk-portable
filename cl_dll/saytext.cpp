@@ -60,7 +60,9 @@ int CHudSayText::Init( void )
 	m_HUD_saytext =		gEngfuncs.pfnRegisterVariable( "hud_saytext", "1", 0 );
 	m_HUD_saytext_time =	gEngfuncs.pfnRegisterVariable( "hud_saytext_time", "5", 0 );
 
+#if 0
 	m_iFlags |= HUD_INTERMISSION; // is always drawn during an intermission
+#endif
 
 	return 1;
 }
@@ -170,11 +172,13 @@ void CHudSayText::SayTextPrint( const char *pszBuf, int iBufSize, int clientInde
 	if( gViewPort && gViewPort->AllowedToPrintText() == FALSE )
 	{
 		// Print it straight to the console
+#if 0
 		ConsolePrint( pszBuf );
+#endif
 		return;
 	}
 #else
-	ConsolePrint( pszBuf );
+	//ConsolePrint( pszBuf );
 #endif
 
 	int i;

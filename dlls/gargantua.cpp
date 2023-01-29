@@ -32,6 +32,8 @@
 #include	"func_break.h"
 #include	"scripted.h"
 
+#include "spiral.h"
+
 //=========================================================
 // Gargantua Monster
 //=========================================================
@@ -64,18 +66,6 @@ int gStompSprite = 0, gGargGibModel = 0;
 void SpawnExplosion( Vector center, float randomRange, float time, int magnitude );
 
 class CSmoker;
-
-// Spiral Effect
-class CSpiral : public CBaseEntity
-{
-public:
-	void Spawn( void );
-	void Think( void );
-	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
-	static CSpiral *Create( const Vector &origin, float height, float radius, float duration );
-};
-
-LINK_ENTITY_TO_CLASS( streak_spiral, CSpiral )
 
 class CStomp : public CBaseEntity
 {
@@ -177,23 +167,6 @@ void CStomp::Think( void )
 			STOP_SOUND( edict(), CHAN_BODY, GARG_STOMP_BUZZ_SOUND );
 		}
 	}
-}
-
-void StreakSplash( const Vector &origin, const Vector &direction, int color, int count, int speed, int velocityRange )
-{
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
-		WRITE_BYTE( TE_STREAK_SPLASH );
-		WRITE_COORD( origin.x );		// origin
-		WRITE_COORD( origin.y );
-		WRITE_COORD( origin.z );
-		WRITE_COORD( direction.x );	// direction
-		WRITE_COORD( direction.y );
-		WRITE_COORD( direction.z );
-		WRITE_BYTE( color );	// Streak color 6
-		WRITE_SHORT( count );	// count
-		WRITE_SHORT( speed );
-		WRITE_SHORT( velocityRange );	// Random velocity modifier
-	MESSAGE_END();
 }
 
 class CGargantua : public CBaseMonster
@@ -564,7 +537,7 @@ void CGargantua::FlameUpdate( void )
 
 			if( trace.flFraction != 1.0f && gpGlobals->time > m_streakTime )
 			{
-				StreakSplash( trace.vecEndPos, trace.vecPlaneNormal, 6, 20, 50, 400 );
+				SpiralStreakSplash( trace.vecEndPos, trace.vecPlaneNormal, 6, 20, 50, 400 );
 				streaks = TRUE;
 				UTIL_DecalTrace( &trace, DECAL_SMALLSCORCH1 + RANDOM_LONG( 0, 2 ) );
 			}
@@ -1274,69 +1247,6 @@ void CSmoker::Think( void )
 	if( pev->health > 0 )
 		SetNextThink( RANDOM_FLOAT( 0.1f, 0.2f ) );
 	else
-		UTIL_Remove( this );
-}
-
-void CSpiral::Spawn( void )
-{
-	pev->movetype = MOVETYPE_NONE;
-	SetNextThink( 0 );
-	pev->solid = SOLID_NOT;
-	UTIL_SetSize( pev, g_vecZero, g_vecZero );
-	pev->effects |= EF_NODRAW;
-	pev->angles = g_vecZero;
-}
-
-CSpiral *CSpiral::Create( const Vector &origin, float height, float radius, float duration )
-{
-	if( duration <= 0 )
-		return NULL;
-
-	CSpiral *pSpiral = GetClassPtr( (CSpiral *)NULL );
-	pSpiral->Spawn();
-	pSpiral->pev->dmgtime = pSpiral->m_fNextThink;
-	pSpiral->pev->origin = origin;
-	pSpiral->pev->scale = radius;
-	pSpiral->pev->dmg = height;
-	pSpiral->pev->speed = duration;
-	pSpiral->pev->health = 0;
-	pSpiral->pev->angles = g_vecZero;
-
-	return pSpiral;
-}
-
-#define SPIRAL_INTERVAL		0.1f //025
-
-void CSpiral::Think( void )
-{
-	float time = gpGlobals->time - pev->dmgtime;
-
-	while( time > SPIRAL_INTERVAL )
-	{
-		Vector position = pev->origin;
-		Vector direction = Vector(0,0,1);
-
-		float fraction = 1.0f / pev->speed;
-
-		float radius = ( pev->scale * pev->health ) * fraction;
-
-		position.z += ( pev->health * pev->dmg ) * fraction;
-		pev->angles.y = ( pev->health * 360 * 8 ) * fraction;
-		UTIL_MakeVectors( pev->angles );
-		position = position + gpGlobals->v_forward * radius;
-		direction = ( direction + gpGlobals->v_forward ).Normalize();
-
-		StreakSplash( position, Vector( 0, 0, 1 ), RANDOM_LONG( 8, 11 ), 20, RANDOM_LONG( 50, 150 ), 400 );
-
-		// Jeez, how many counters should this take ? :)
-		pev->dmgtime += SPIRAL_INTERVAL;
-		pev->health += SPIRAL_INTERVAL;
-		time -= SPIRAL_INTERVAL;
-	}
-
-	SetNextThink( 0 );
-
-	if( pev->health >= pev->speed )
 		UTIL_Remove( this );
 }
 
